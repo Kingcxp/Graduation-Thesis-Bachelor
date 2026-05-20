@@ -803,13 +803,13 @@ echo "✅ 成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
 == 实验环境与测试方案设定
 为了评估重构后系统的性能与可靠性，本文在真实的高性能物理服务器环境中部署了该框架，并与原版开源项目进行了对比测试。
 
-#rect(fill: rgb("ffeeee"), stroke: red, width: 100%, inset: 8pt)[
-  - CPU: 12th Gen Intel(R) Core(TM) i9-12900H
-  - 内存: 64GB DDR5
-  - 宿主机操作系统: Ubuntu 22.04 LTS (基于 Linux 6.8.0 内核)
-  - 直通测试 GPU: NVIDIA RTX 3070Ti
-  - 测试驱动版本: NVIDIA Driver 530.41.03
-]
+使用的物理服务器配置如下：
+
+- CPU: 12th Gen Intel(R) Core(TM) i9-12900H
+- 内存: 64GB DDR5
+- 宿主机操作系统: Ubuntu 22.04 LTS (基于 Linux 6.8.0 内核)
+- 直通测试 GPU: NVIDIA RTX 3070Ti
+- 测试驱动版本: NVIDIA Driver 530.41.03
 
 性能评估主要围绕两项核心指标展开：环境部署的成功率与时间成本；离体模糊测试引擎长时间运行的稳定性及吞吐量。
 
