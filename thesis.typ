@@ -156,6 +156,8 @@ Syzkaller 的核心架构由三个主要子组件构成：`syz-manager`、`syz-f
   caption:[Syzkaller 多组件协同工作架构图]
 )
 
+如图 2.1 所示， Syzkaller 通过多组件协同工作来完成整个模糊测试的过程。
+
 在针对 GPU 驱动的离体模糊测试中，原版 Moneta 主要对 `syz-manager` 和 `syz-fuzzer` 的数据同步通道进行了改造，使其能够适应无网络环境下的快照复苏逻辑。
 
 == Strace 系统调用拦截与语料录制原理
@@ -173,7 +175,7 @@ Syzkaller 的核心架构由三个主要子组件构成：`syz-manager`、`syz-f
 === 2. 在模糊测试工作流中的关键作用
 在原始的 Syzkaller 中，模糊测试的初始语料通常由人工编写的模板随机生成，这对于具有深层状态机的 GPU 驱动来说，几乎不可能随机出合法且复杂的初始化调用链。
 
-本框架中定制版的 `strace` 完美弥补了这一短板。在捕获阶段，它将截获的所有合法 `ioctl` 调用流（包含精准的硬件命令和结构体数据）序列化并落盘保存。这些真实的录制数据在离体阶段被转换为 Syzkaller 可识别的“初始种子（Seed Corpus）”。有了这些完美通过驱动浅层检查的真实业务调用链，Syzkaller 才能在此基础上进行高保真的变异，进而探及驱动深层的条件竞争和内存越界漏洞。
+本框架中定制版的 `strace` 完美弥补了这一短板。如图 2.2 所示，在捕获阶段，它将截获的所有合法 `ioctl` 调用流（包含精准的硬件命令和结构体数据）序列化并落盘保存。这些真实的录制数据在离体阶段被转换为 Syzkaller 可识别的“初始种子（Seed Corpus）”。有了这些完美通过驱动浅层检查的真实业务调用链，Syzkaller 才能在此基础上进行高保真的变异，进而探及驱动深层的条件竞争和内存越界漏洞。
 
 #figure(
   align(center)[
@@ -283,14 +285,14 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
 在本文的重构中，上述复杂的 VFIO 绑定过程被完全自动化，并被封装进了 Docker 的入口脚本中，极大提升了测试部署的容错率。
 
 == Docker 容器化与 Linux 内核隔离原理
-为了解决模糊测试环境中繁杂的编译工具链冲突问题，本文全面引入了 Docker 容器化部署技术。Docker 的轻量级虚拟化本质上并非像 QEMU 那样模拟硬件，而是利用 Linux 内核提供的 Namespace 与 Cgroups 技术，实现进程级别的资源隔离。
+为了解决模糊测试环境中繁杂的编译工具链冲突问题，本文全面引入了 Docker 容器化部署技术。Docker 的轻量级虚拟化本质上并非像 QEMU 那样模拟硬件，而是利用 Linux 内核提供的 Namespace @linux_namespaces 与 Cgroups @linux_cgroups 技术，实现进程级别的资源隔离。
 
 === 1. Namespace 与 Cgroups
 - *Namespace（命名空间）*：隔离系统全局资源。在容器内部运行的 `build.sh` 或 QEMU 进程，其 PID 始终表现为从 1 开始（PID Namespace），且拥有完全独立的文件系统视图（Mount Namespace）与隔离的虚拟网卡栈（Network Namespace），互不干扰。
 - *Cgroups（控制组）*：限制资源配额。由于模糊测试会以极高的频率进行系统调用和状态重置，容易引发宿主机内存耗尽（OOM）。Docker 依赖 Cgroups 技术，允许对测试容器进行严格的内存边界限制和 CPU 核心数绑定，保证了多台实例在服务器上并发时不会拖垮宿主机。
 
 === 2. 特权模式与设备挂载透传
-通常情况下，为了安全起见，Docker 容器受到严格的 Seccomp 策略限制，禁止访问底层 PCI 总线与系统 `/dev` 目录。然而，由于本框架的收集阶段必须使用 VFIO 直通物理 GPU，容器被迫需要突破这一安全壁垒。在本文的部署架构中，我们使用了 `--privileged` 特权模式，并显式将硬件节点透传到容器内部。
+通常情况下，为了安全起见，Docker 容器受到严格的 Seccomp @linux_seccomp 策略限制，禁止访问底层 PCI 总线与系统 `/dev` 目录。然而，由于本框架的收集阶段必须使用 VFIO 直通物理 GPU，容器被迫需要突破这一安全壁垒。在本文的部署架构中，我们使用了 `--privileged` 特权模式，并显式将硬件节点透传到容器内部。
 
 #figure(
   align(center)[
@@ -895,7 +897,7 @@ Syzkaller 原本依赖人工编写的系统调用描述语言（Syzlang）来知
 
 == 多模态混合并发负载的深度挖掘
 本文在重构中已引入了张量计算等单模态 AI 负载。但在现代异构计算场景中，GPU 往往处于“图形渲染（Graphics）”与“通用计算（Compute）”混合调度的状态。
-未来框架可扩展生成*多模态复合负载（Mixed-Modal Workloads）*。例如，在在体阶段同时运行 Vulkan/OpenGL 图形管道与 CUDA 异步计算管道；并在重放期间，利用宿主机 CPU 模拟高并发的统一虚拟内存（UVM）缺页异常。这种复合态的交火将极大增加发现内核态调度器死锁（Deadlock）和使用后释放（Use-After-Free, UAF）等高危安全漏洞的概率。
+未来框架可扩展生成*多模态复合负载（Mixed-Modal Workloads）*。例如，在在体阶段同时运行 Vulkan @vulkan13spec/OpenGL @opengl46spec 图形管道与 CUDA 异步计算管道；并在重放期间，利用宿主机 CPU 模拟高并发的统一虚拟内存（UVM）缺页异常。这种复合态的交火将极大增加发现内核态调度器死锁（Deadlock）和使用后释放（Use-After-Free, UAF）等高危安全漏洞的概率。
 
 = 总结与展望
 
