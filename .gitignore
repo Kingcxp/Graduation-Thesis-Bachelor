@@ -2,7 +2,7 @@
 .vscode/
 .idea/
 
-thesis.pdf
+*.pdf
 
 .DS_Store
 __MACOSX/

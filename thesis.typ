@@ -33,14 +33,14 @@
 #show: doc
 
 #show raw.where(block: true): it => {
-  set text(size: 12pt)             // 1. 稍微缩小代码字体，防止单行超出页面宽度
-  set par(leading: 0.6em)        // 2. 调小代码行的上下行间距 (默认约 0.65em)
+  set text(size: 8pt)
+  set par(leading: 0.6em)
   block(
-    fill: luma(250),              // 浅灰色背景
-    inset: 10pt,                  // 代码块内边距
-    radius: 4pt,                  // 圆角
-    stroke: 0.5pt + luma(200),    // 灰色边框
-    width: 100%,                  // 充满页面宽度
+    fill: luma(250),
+    inset: 10pt,
+    radius: 4pt,
+    stroke: 0.5pt + luma(200),
+    width: 100%,
     it
   )
 }
@@ -53,26 +53,26 @@
 #abstract(
   keywords: ("GPU驱动", "模糊测试", "快照重托管", "容器化部署", "Virtio-serial", "状态机")
 )[
-  在异构计算成为算力核心支撑的当下，GPU 已从传统图形渲染场景，全面延伸至深度学习、高性能计算、科学仿真、自动驾驶等关键领域。GPU 驱动作为衔接上层应用与底层硬件的核心中间件，其安全性、稳定性与可靠性直接决定了上层全栈系统的正常运行。由于 GPU 驱动兼具用户态 runtime 与内核态模块的复杂架构，代码规模庞大、逻辑分支密集、硬件相关的状态机复杂度极高，加之 NVIDIA、AMD 等主流厂商的核心驱动均为闭源形态，这使得传统的内核白盒测试与静态分析方法难以直接应用于 GPU 驱动等闭源系统。尽管已有研究尝试通过基于虚拟化的方式对闭源驱动进行检测，但这些方法大多面向状态较为简单的普通外设，难以应对 GPU 驱动中高度复杂的异步交互行为。
+  在异构计算成为算力核心支撑的当下，GPU 已从传统图形渲染场景，全面延伸至深度学习、高性能计算、科学仿真、自动驾驶等关键领域。GPU 驱动作为衔接上层应用与底层硬件的核心中间件，其安全性、稳定性与可靠性直接决定了上层全栈系统的正常运行。
 
-  模糊测试作为当前最有效的自动化漏洞挖掘技术之一，已成为 GPU 驱动安全测试的核心手段。近期，学术界提出了基于“快照重托管（Snapshot-and-Rehost）”与“记录重放（Record-and-Replay）”的技术方案的 Moneta，试图解决传统模糊测试高度依赖物理硬件和驱动状态难以深入的问题。然而，这些前沿理论项目在工程落地上面临着严峻挑战：原有系统架构对宿主机内核存在极强的侵入性依赖，大量硬编码与僵化的构建流程导致其在现代通用服务器上几乎无法部署；且原有测试负载过于单一，无法触发复杂 AI 计算下的深层条件竞争漏洞。
+  模糊测试作为当前最有效的自动化漏洞挖掘技术之一，已成为 GPU 驱动安全测试的核心手段。近期，学术界提出了基于“快照重托管”与“记录重放”的技术方案的 Moneta，试图解决传统模糊测试高度依赖物理硬件和驱动状态难以深入的问题。然而，这些前沿理论项目在工程落地上面临着严峻挑战。
 
-  在此背景下，本研究对 Moneta 项目进行了深度的工程化重构与扩展。首先，本文首创了基于 Virtio-serial 虚拟串口的非侵入式客主机与宿主机通信机制，彻底剥离了对定制版 Linux 内核的依赖；其次，本文修复了 Syzkaller 调度器的并发死锁缺陷，并补齐了断层的构建链；再次，本文设计了基于状态机的全自动端到端构建流水线，并引入了模拟现代 AI 模型训练的复杂张量计算测试负载；最后，本文提出并实现了一种具备硬件拓扑自适应感知能力的 Docker 容器化部署方案，实现了 VFIO 直通的“即插即用”。
+  在此背景下，本研究对 Moneta 项目进行了深度的工程化重构与扩展。首先，本文首创了基于 Virtio-serial 虚拟串口的非侵入式客户机与宿主机通信机制，彻底剥离了对定制版 Linux 内核的依赖；其次，本文修复了 Syzkaller 调度器的并发死锁缺陷，并补齐了断层的构建链；再次，本文设计了基于状态机的全自动端到端构建流水线，并引入了模拟现代 AI 模型训练的复杂张量计算测试负载；最后，本文提出并实现了一种具备硬件拓扑自适应感知能力的 Docker 容器化部署方案，实现了 VFIO 直通的“即插即用”。
 
-  实验结果表明，重构后的框架将原本长达数天的环境部署周期压缩至分钟级，部署成功率达到 100%，并在无物理 GPU 的离体环境中实现了高吞吐量、零崩溃的稳定模糊测试。本研究极大降低了 GPU 驱动漏洞挖掘的工程门槛，为防御针对 AI 算力底座的基础设施攻击提供了强有力的底层工具支撑。
+  实验结果表明，重构后的框架将原本长达数天的环境部署周期压缩至分钟级，部署成功率达到 90%，并在无物理 GPU 的离体环境中实现了高吞吐量、零崩溃的稳定模糊测试。本研究极大降低了 GPU 驱动漏洞挖掘的工程门槛，为防御针对 AI 算力底座的基础设施攻击提供了强有力的底层工具支撑。
 ]
 
 // 英文摘要
 #abstract-en(
   keywords: ("GPU Driver", "Fuzzing", "Snapshot-and-Rehost", "Containerization", "Virtio-serial", "State Machine")
 )[
-  In the era of heterogeneous computing, GPUs have expanded from traditional graphics rendering to critical domains such as deep learning, high-performance computing, and autonomous driving. As the core middleware connecting applications to hardware, GPU drivers directly determine the security and stability of the entire system stack. The complex architecture of GPU drivers, comprising user-space runtimes and kernel-space modules, involves massive codebases and highly intricate hardware-dependent state machines. Coupled with the closed-source nature of mainstream drivers (e.g., NVIDIA, AMD), traditional white-box testing faces severe limitations.
+  At a time when heterogeneous computing has become the core support of computing power, GPUs have extended from traditional graphics rendering scenarios to key areas such as deep learning, high-performance computing, scientific simulation, and autonomous driving. As the core middleware connecting upper-level applications and underlying hardware, the security, stability, and reliability of GPU drivers directly determine the normal operation of the upper-level full-stack system.
 
-  Fuzz testing has become a core technique for GPU driver vulnerability discovery. Recently, academia proposed frameworks `Moneta` based on "Snapshot-and-Rehost" and "Record-and-Replay" to address hardware dependency and deep state traversal issues. However, these academic prototypes face severe engineering barriers: the original architecture intrusively modifies the host Linux kernel, and widespread hardcoding makes deployment on modern servers nearly impossible. Furthermore, their original workloads are too simplistic to trigger deep race conditions in modern AI scenarios.
+  Fuzz testing, as one of the most effective automated vulnerability discovery techniques, has become a core method in GPU-driven security testing. Recently, the academic community has proposed Moneta, a technical solution based on "Snapshot-and-Rehost" and "Record-and-Replay", aiming to address the issue of traditional fuzz testing being highly dependent on physical hardware and driver state, making it difficult to delve deeper. However, these cutting-edge theoretical projects face severe challenges in engineering implementation.
 
-  In this context, this study conducts a profound engineering reconstruction and extension of the Moneta project. First, we propose a non-intrusive Guest-Host communication mechanism based on Virtio-serial, completely decoupling the system from customized host kernels. Second, we fix concurrency deadlocks in the Syzkaller scheduler and repair the broken toolchain build process. Third, we design a state-machine-driven automated build pipeline and introduce complex AI tensor workloads to replace simple graphics workloads. Finally, we implement an intelligent Docker-based deployment architecture capable of adaptive hardware topology sensing and automatic VFIO passthrough.
+  Against this backdrop, this study conducted an in-depth engineering reconstruction and expansion of the Moneta project. Firstly, this paper pioneered a non-intrusive communication mechanism between the guest host and the host based on Virtio-serial virtual serial ports, completely eliminating the dependence on customized Linux kernels. Secondly, this paper fixed the concurrent deadlock flaw in the Syzkaller scheduler and completed the faulty build chain. Thirdly, this paper designed a fully automated end-to-end build pipeline based on state machines and introduced complex tensor computation test loads that simulate modern AI model training. Finally, this paper proposed and implemented a Docker containerized deployment scheme with hardware topology adaptive sensing capabilities, achieving "plug and play" with VFIO pass-through.
 
-  Experimental results show that our reconstructed framework compresses the deployment cycle from days to minutes with a 100% success rate, achieving high-throughput, crash-free fuzzing in an ex-vivo environment without physical GPUs. This research significantly lowers the engineering threshold for GPU driver vulnerability discovery and provides robust tool support for securing AI infrastructure.
+  The experimental results demonstrate that the reconstructed framework compresses the originally days-long environment deployment cycle to minutes, achieving a deployment success rate of 90%. Furthermore, it achieves stable fuzzy testing with high throughput and zero crashes in an isolated environment without physical GPUs. This research significantly lowers the engineering threshold for GPU-driven vulnerability mining and provides robust underlying tool support for defending against infrastructure attacks targeting AI computing power bases.
 ]
 
 // 目录
@@ -84,53 +84,42 @@
 = 绪论
 
 == 研究背景与意义
-随着现代计算机图形学和人工智能领域的飞速发展，图形处理单元（GPU）已经成为现代计算基础设施不可或缺的核心算力底座。其应用场景已从传统的 3D 图形渲染扩展到深度学习训练 @krizhevsky2012imagenet、大规模矩阵运算 @owens2008survey、科学仿真乃至自动驾驶 @dosovitskiy2017carla 等高敏感领域。为了支持这些复杂的计算负载，现代GPU驱动程序的代码库变得越来越庞大且逻辑错综复杂。作为连接用户态应用与底层硬件的关键内核级中间件，GPU驱动一旦存在内存越界、条件竞争或逻辑漏洞，攻击者便可轻易实现权限提升、沙箱逃逸甚至造成整个物理机宕机，从而带来严重的安全隐患。
+随着现代计算机图形学和人工智能领域的飞速发展，图形处理单元已经成为现代计算基础设施不可或缺的核心算力底座。其应用场景已从传统的 3D 图形渲染扩展到深度学习训练 @krizhevsky2012imagenet、大规模矩阵运算 @owens2008survey、科学仿真乃至自动驾驶 @dosovitskiy2017carla 等高敏感领域。为了支持这些复杂的计算负载，现代GPU驱动程序的代码库变得越来越庞大且逻辑错综复杂。作为连接用户态应用与底层硬件的关键内核级中间件，GPU驱动一旦存在内存越界、条件竞争或逻辑漏洞，攻击者便可轻易实现权限提升、沙箱逃逸甚至造成整个物理机宕机，从而带来严重的安全隐患。
 
-GPU 驱动程序的安全缺陷在现实中已引发多次严峻的攻击事件。例如，2022 年安全研究人员披露了 NVIDIA vGPU 驱动软件中的一系列高危漏洞（如 CVE-2022-31607），攻击者可利用这些漏洞在受限制的虚拟机（VM）中实现逃逸，从而在主机系统上执行任意代码并获取最高权限。在多租户的云端 GPU 计算平台上，这意味着攻击者可以非法跨越安全边界，窃取其他用户的深度学习模型或敏感训练数据 @nvidia_vgpu_cve。此外，针对移动端 GPU 驱动的零日漏洞攻击也已被发现用于针对特定目标的间谍行为，进一步证明了 GPU 驱动正成为现代系统安全防御中的薄弱环。 @mali_gpu_exploit @p0_gpu_analysis
+GPU 驱动程序的安全缺陷在现实中已引发多次严峻的攻击事件。例如，2022 年安全研究人员披露了 NVIDIA vGPU 驱动软件中的一系列高危漏洞（如 CVE-2022-31607），攻击者可利用这些漏洞在受限制的虚拟机中实现逃逸，从而在主机系统上执行任意代码并获取最高权限。在多租户的云端 GPU 计算平台上，这意味着攻击者可以非法跨越安全边界，窃取其他用户的深度学习模型或敏感训练数据 @nvidia_vgpu_cve。此外，针对移动端 GPU 驱动的零日漏洞攻击也已被发现用于针对特定目标的间谍行为，进一步证明了 GPU 驱动正成为现代系统安全防御中的薄弱环。 @mali_gpu_exploit @p0_gpu_analysis
 
-模糊测试（Fuzzing）作为一种行之有效的自动化漏洞挖掘技术，在操作系统内核的安全测试中取得了巨大成功（如 Google 的 Syzkaller @syzkaller）。然而，当传统的模糊测试技术应用于GPU驱动时，面临着几个致命瓶颈：强烈的硬件依赖性（难以在无GPU的服务器集群中进行横向扩展）、复杂的设备初始化状态（难以绕过浅层参数检查）以及低下的执行保真度。为了解决这些问题，学术界自 PeriScope @song2019periscope 首次提出针对硬件-操作系统（Hardware-OS）边界的拦截思想以来，逐步演化出了如 Agamotto @song2020agamotto 等基于轻量级虚拟机检查点的测试方案，而 Yonsei SSLab 在顶级网络安全会议 NDSS 2025 上提出的 Moneta 框架 @jung2025moneta 则进一步将“快照重托管（Snapshot-and-Rehost）”与“记录重放（Record-and-Replay）”技术深度结合，首次在 GPU 领域实现了高保真的离体（Ex-vivo）驱动模糊测试。在此之前，离体测试思想（如 Frankenstein @ruge2020frankenstein）已被证明在绕过蓝牙等硬件固件强依赖时具有极高的实战价值。
+模糊测试作为一种行之有效的自动化漏洞挖掘技术，在操作系统内核的安全测试中取得了巨大成功（如 Google 的 Syzkaller @syzkaller）。然而，当传统的模糊测试技术应用于GPU驱动时，面临着几个致命瓶颈：强烈的硬件依赖性（难以在无GPU的服务器集群中进行横向扩展）、复杂的设备初始化状态（难以绕过浅层参数检查）以及低下的执行保真度。为了解决这些问题，学术界自 PeriScope @song2019periscope 首次提出针对硬件-操作系统边界的拦截思想以来，逐步演化出了如 Agamotto @song2020agamotto 等基于轻量级虚拟机检查点的测试方案，而 Yonsei SSLab 在顶级网络安全会议 NDSS 2025 上提出的 Moneta 框架 @jung2025moneta 则进一步将“快照重托管”与“记录重放”技术深度结合，首次在 GPU 领域实现了高保真的离体驱动模糊测试。在此之前，离体测试思想（如 Frankenstein @ruge2020frankenstein）已被证明在绕过蓝牙等硬件固件强依赖时具有极高的实战价值。
 
 尽管 Moneta 在理论上展现了卓越的漏洞挖掘潜力，但其开源原型却缺乏工程化与通用化考量，存在严重的架构耦合（如深度侵入并修改特定版本的宿主机内核）、大量的构建缺陷以及僵化的环境配置。这使得该系统几乎无法在现代通用数据中心设备上成功部署。因此，本文旨在对 Moneta 系统进行深度的工程化重构与架构优化，提出一种基于解耦虚拟通信机制和自适应容器化技术的新型部署与测试框架，这对于推动GPU驱动安全测试技术的工业化落地具有极大的实践价值。
 
 == 国内外研究现状
-GPU驱动模糊测试是当前系统安全领域的研究热点与难点，现有研究主要沿着两个方向演进：
-
-*1. 面向硬件或API定制的传统模糊测试*：
-早期的研究往往将GPU驱动视为普通的黑盒或灰盒内核模块，通过拦截或伪造特定的图形API（如 Vulkan、OpenGL）来生成测试用例。然而，由于闭源驱动内部维护着极其复杂的环形缓冲区（Ring Buffer）和异步状态机，这些传统的测试方法往往在到达深层逻辑前就被驱动的浅层合法性预检机制所拦截。尽管近年来出现了如 DIFUZE @corina2017difuze 等尝试自动解析驱动 ioctl 接口并进行结构体感知的模糊测试工具，但在面对 GPU 驱动动态且极其庞大的上下文参数时，依然捉襟见肘，导致深层代码覆盖率极低。
-
-*2. 基于虚拟机快照与状态重放的离体测试*：
-为了突破硬件限制并深入驱动的深层状态，近期的研究开始探索硬件解耦的测试途径，例如早期的 kAFL @schumilo2017kafl 首次证明了利用硬件特性（Intel PT）结合虚拟机快照进行内核模糊测试的高效性。例如，部分研究尝试剥离硬件，使用纯软件模拟器进行代替（如针对 USB 驱动的 USBFuzz @peng2020usbfuzz）。但与简单的 USB 协议不同，闭源 GPU 驱动对硬件时序与未文档化寄存器有着极其严格的要求，强行使用纯软件模拟往往导致驱动直接崩溃。Moneta @jung2025moneta 提出的基于“在体（In-Vivo）捕获”与“离体（Ex-Vivo）重放”的技术路线，被公认为是目前解决这一困境的最优解。然而，学术界原型由于追求快速发表，往往忽略了软件工程规范，导致诸如宿主机内核强绑定等问题严重阻碍了该类技术的推广应用。
+GPU 驱动模糊测试是当前系统安全领域的研究热点与难点，现有研究主要沿着两个方向演进。首先是面向硬件或 API 定制的传统模糊测试，早期研究往往将 GPU 驱动视为普通的黑盒或灰盒内核模块，通过拦截或伪造特定的图形 API（如 Vulkan、OpenGL）来生成测试用例。然而，由于闭源驱动内部维护着极其复杂的环形缓冲区和异步状态机，这些传统的测试方法往往在到达深层逻辑前就被驱动的浅层合法性预检机制所拦截。尽管近年来出现了如 DIFUZE @corina2017difuze 等尝试自动解析驱动 ioctl 接口并进行结构体感知的模糊测试工具，但在面对 GPU 驱动动态且极其庞大的上下文参数时，依然捉襟见肘，导致深层代码覆盖率极低。其次是基于虚拟机快照与状态重放的离体测试，为了突破硬件限制并深入驱动的深层状态，近期的研究开始探索硬件解耦的测试途径，例如早期的 kAFL @schumilo2017kafl 首次证明了利用硬件特性结合虚拟机快照进行内核模糊测试的高效性。虽然部分研究尝试剥离硬件并使用纯软件模拟器代替，但闭源 GPU 驱动对硬件时序与未文档化寄存器有着极其严格的要求，强行模拟往往导致驱动崩溃。因此，Moneta @jung2025moneta 提出的基于“在体捕获”与“离体重放”的技术路线，被公认为是目前解决这一困境的最优解，但其学术原型在软件工程规范上的缺失仍阻碍了该技术的推广应用。
 
 == 本文主要工作与贡献
-针对原项目存在的底层缺陷与部署障碍，本文通过重新设计通信架构和优化构建流，完成了一套高可用、自动化的 GPU 驱动模糊测试系统。本文的主要贡献如下：
-
-+ *首创非侵入式虚拟串口通信架构*：彻底移除了原系统对定制版 Linux 5.19 宿主机内核的强依赖。通过引入 QEMU @bellard2005qemu 的 Virtio-serial 虚拟设备与宿主机代理守护进程，实现了客主机状态与宿主机控制面板的应用层解耦。
-+ *全链路组件修复与测试负载扩充*：系统性修复了原版 Syzkaller 适配版本中 `syz-manager` 的并发调度逻辑错误与编译断层。同时，将单一的图形渲染测试负载拓展为模拟现代 AI 模型训练的复杂张量计算负载，大幅提升了测试覆盖的业务价值。
-+ *参数化重构与一键式全自动构建*：将繁杂的硬件依赖（如 PCI 设备地址、驱动版本）提取为动态环境变量，并开发了基于状态机驱动的流水线脚本，实现从依赖安装、快照捕获到离体变异的端到端自动化。
-+ *自适应硬件感知的容器化部署*：设计并开源了具有 VFIO 直通能力的智能化 Docker @merkel2014docker 部署方案，实现了对不同物理硬件拓扑的自适应感知，将原本数天的部署周期压缩至分钟级。
+针对原项目存在的底层缺陷与部署障碍，本文通过重新设计通信架构和优化构建流，完成了一套高可用、自动化的 GPU 驱动模糊测试系统。首先，在架构设计上，本文首创了非侵入式虚拟串口通信架构，通过引入 QEMU 的 Virtio-serial 虚拟设备与宿主机代理守护进程实现了客户机状态与宿主机控制面板的应用层解耦，从而彻底移除了原系统对定制版 Linux 5.19 宿主机内核的强依赖。其次，本文系统性地修复了原版 Syzkaller 适配版本中 syz-manager 的并发调度逻辑错误与编译断层，同时将单一的图形渲染测试负载拓展为模拟现代 AI 模型训练的复杂张量计算负载，大幅提升了测试覆盖的业务价值。此外，通过将繁杂的硬件依赖提取为动态环境变量，本文开发了基于状态机驱动的流水线脚本，实现了从依赖安装、快照捕获到离体变异的端到端全链路自动化。最后，本文设计并开源了具有 VFIO 直通能力的智能化 Docker 容器化部署方案，实现了对不同物理硬件拓扑的自适应感知，将原本数天的部署周期成功压缩至分钟级。
 
 = 模糊测试框架核心组件原理剖析
 
 要实现对复杂闭源 GPU 驱动的高保真离体模糊测试，需要将系统级虚拟化、基于覆盖率引导的模糊测试引擎以及轻量级容器部署技术进行深度融合。本章将对本框架依赖的核心开源组件——Syzkaller、QEMU/KVM 与 Docker 的底层技术原理及其子组件进行深度剖析，为后文的架构重构与工程实现奠定理论基础。
 
 == Syzkaller 内核模糊测试引擎架构剖析
-Syzkaller @syzkaller 是由 Google 开发的一款无监督、基于代码覆盖率引导的（Coverage-guided）操作系统内核模糊测试工具。与传统的基于变异的用户态 Fuzzer（如经典的 AFL @zalewski2014afl 及其当前工业界广泛使用的演进版本 AFL++ @fioraldi2020aflpp）不同，Syzkaller 需要应对内核状态机的复杂性、系统调用的上下文依赖以及内核崩溃后的环境重置难题。为了实现高效的内核 Fuzzing，Syzkaller 采用了高度模块化的多进程/多虚拟机分离架构。
+Syzkaller @syzkaller 是由 Google 开发的一款无监督、基于代码覆盖率引导的操作系统内核模糊测试工具。与传统的基于变异的用户态 Fuzzer（如经典的 AFL @zalewski2014afl 及其当前工业界广泛使用的演进版本 AFL++ @fioraldi2020aflpp）不同，Syzkaller 需要应对内核状态机的复杂性、系统调用的上下文依赖以及内核崩溃后的环境重置难题。为了实现高效的内核模糊测试，Syzkaller 采用了高度模块化的多进程/多虚拟机分离架构。
 
 Syzkaller 的核心架构由三个主要子组件构成：`syz-manager`、`syz-fuzzer` 和 `syz-executor`。
 
-=== 1. syz-manager（全局调度与语料管理器）
-`syz-manager` 是运行在宿主机（Host）上的全局控制中心，也是整个测试过程的“大脑”。其主要职责包括：
-- *虚拟机生命周期管理*：负责拉起（Boot）、监控和销毁客主机（Guest OS）实例。当内核发生 Panic 或死锁时，`syz-manager` 会强制重启虚拟机以恢复纯净的测试环境。
-- *语料库（Corpus）维护与分发*：它维护着一个全局的有效测试用例（Programs）池。它会收集来自各个 Guest 的执行反馈，如果某个输入触发了新的代码分支（即产生了新的 Coverage），该输入就会被加入语料库，并经过最小化（Minimization）处理。
+=== 全局调度与语料管理器
+`syz-manager` 是运行在宿主机上的全局控制中心，也是整个测试过程的“大脑”。其主要职责包括：
+- *虚拟机生命周期管理*：负责拉起、监控和销毁客户机实例。当内核发生 Panic 或死锁时，`syz-manager` 会强制重启虚拟机以恢复纯净的测试环境。
+- *语料库维护与分发*：它维护着一个全局的有效测试用例池。它会收集来自各个客户机的执行反馈，如果某个输入触发了新的代码分支（即产生了新的路径覆盖），该输入就会被加入语料库，并经过最小化处理。
 - *RPC 通信服务*：通过宿主机的网络或共享内存通道，对外暴露 RPC 服务，供各个虚拟机内的 `syz-fuzzer` 进程拉取新任务并上传测试结果。
 
-=== 2. syz-fuzzer（客主机变异代理）
-`syz-fuzzer` 是运行在每个 Guest 内部的长期驻留守护进程。其核心功能是：
-- *语料变异（Mutation）*：从 `syz-manager` 获取初始语料后，根据目标驱动的系统调用描述规则（Syzlang），对参数、指针、结构体进行变异，生成海量的随机测试用例。
+=== 客户机变异代理
+`syz-fuzzer` 是运行在每个客户机内部的长期驻留守护进程。其核心功能是：
+- *语料变异*：从 `syz-manager` 获取初始语料后，根据目标驱动的系统调用描述规则（Syzlang），对参数、指针、结构体进行变异，生成海量的随机测试用例。
 - *执行调度与反馈收集*：将变异后的用例通过管道或共享内存传递给执行器，并在执行结束后收集内核态的代码覆盖率（通过 KCOV @vyukov2016kcov 机制）。
 
-=== 3. syz-executor（系统调用执行器）
-`syz-executor` 是一个轻量级的 C++ 二进制程序，在 Guest 内被 `syz-fuzzer` 频繁调用。由于模糊测试常常导致内核崩溃，`syz-executor` 被设计为“阅后即焚”的进程。它接收经过序列化的系统调用流，并将其在 CPU 上真实执行。为了捕获覆盖率，它会通过 `ioctl` 打开内核的 `/sys/kernel/debug/kcov` 接口，在执行目标系统调用期间记录内核指令指针（RIP）的执行轨迹。
+=== 系统调用执行器
+`syz-executor` 是一个轻量级的 C++ 二进制程序，在客户机内被 `syz-fuzzer` 频繁调用。由于模糊测试常常导致内核崩溃，`syz-executor` 被设计为“阅后即焚”的进程。它接收经过序列化的系统调用流，并将其在 CPU 上真实执行。为了捕获覆盖率，它会通过 `ioctl` 打开内核的 `/sys/kernel/debug/kcov` 接口，在执行目标系统调用期间记录内核指令指针的执行轨迹。
 
 #figure(
   scale(80%, reflow: true)[
@@ -140,14 +129,14 @@ Syzkaller 的核心架构由三个主要子组件构成：`syz-manager`、`syz-f
       spacing: (4em, 2em),
 
       // Host 侧
-      node((0,0), [Host OS], fill: rgb("eeeeee"), width: 120pt, height: 160pt),
+      node((0,0), [宿主机操作系统], fill: rgb("eeeeee"), width: 120pt, height: 160pt),
       node((0,0), [syz-manager(全局语料库 & RPC Server)], fill: rgb("ccccff")),
 
-      // Guest 侧
-      node((2,0), [Guest OS (VM)], fill: rgb("eeffee"), width: 150pt, height: 160pt),
+      //客户机侧
+      node((2,0), [客户机操作系统 (虚拟机)], fill: rgb("eeffee"), width: 150pt, height: 160pt),
       node((2,-0.5),[syz-fuzzer(RPC Client & 变异器)], fill: rgb("ffffcc")),
       node((2,0.5), [syz-executor(执行系统调用)], fill: rgb("ffcccc")),
-      node((2,1.2), [KCOV 内核模块(记录 RIP 轨迹)], shape: "rect"),
+      node((2,1.2), [KCOV 内核模块(记录内核指令指针轨迹)], shape: "rect"),
 
       // 连线
       edge((0,0), (2,-0.5), "<->", label: "RPC 同步 (网络/共享内存)"),
@@ -158,39 +147,39 @@ Syzkaller 的核心架构由三个主要子组件构成：`syz-manager`、`syz-f
   caption:[Syzkaller 多组件协同工作架构图]
 )
 
-Syzkaller 的多组件协作流程如图 2.1 所示。其核心工作机制是一个跨越宿主机（Host）与客户机（Guest）的反馈闭环，具体逻辑如下：
+Syzkaller 的多组件协作流程如图 2.1 所示。其核心工作机制是一个跨越宿主机与客户机的反馈闭环，具体逻辑如下：
 
-1.  全局控制与任务分发：位于 Host 端的 syz-manager 担任中心控制器的角色。它负责维护全局种子语料库（Corpus），并通过 RPC
-    服务器与多个 Guest 实例保持通信。它将任务分发给各实例，并持久化存储发现的新路径。
-2.  变异与调度：在 Guest 侧，syz-fuzzer 作为 RPC
+1.  全局控制与任务分发：位于宿主机端的 syz-manager 担任中心控制器的角色。它负责维护全局种子语料库，并通过 RPC
+    服务器与多个客户机实例保持通信。它将任务分发给各实例，并持久化存储发现的新路径。
+2.  变异与调度：在客户机侧，syz-fuzzer 作为 RPC
     客户端与管理器同步。它从管理器获取语料后，在本地执行变异算法生成测试用例。随后，它将生成的系统调用序列传递给
     syz-executor。
 3.  负载执行：syz-executor 是轻量级的执行单元，负责解析 fuzzer
-    传来的指令并实际触发内核系统调用（Syscalls）。这种分离架构确保了即便执行过程中发生崩溃，也不会直接导致
+    传来的指令并实际触发内核系统调用。这种分离架构确保了即便执行过程中发生崩溃，也不会直接导致
     fuzzer 逻辑中断。
 4.  覆盖率反馈环：这是 Syzkaller 高效的核心。当系统调用执行时，内核中的 KCOV
-    模块会记录指令指针（RIP）的跳转轨迹。执行完成后，覆盖率信息经由
+    模块会记录指令指针的跳转轨迹。执行完成后，覆盖率信息经由
     syz-executor 反馈至 syz-fuzzer。如果该测试用例触发了新的内核代码路径，syz-fuzzer 会通过 RPC 将其同步回
-    syz-manager，从而实现由覆盖率引导（Coverage-guided）的迭代探测。
+    syz-manager，从而实现由覆盖率引导的迭代探测。
 
 在针对 GPU 驱动的离体模糊测试中，原版 Moneta 主要对 `syz-manager` 和 `syz-fuzzer` 的数据同步通道进行了改造，使其能够适应无网络环境下的快照复苏逻辑。
 
 == Strace 系统调用拦截与语料录制原理
-在离体模糊测试的“在体收集（In-Vivo Collection）”阶段，框架必须精确记录测试负载（如 AI 训练程序）与 GPU 驱动之间的每一次交互。这些交互主要体现为用户态应用程序向内核态驱动发起的系统调用（如 `open`、`mmap` 以及最核心的 `ioctl`）。本框架利用定制化的 `strace` 工具作为 Guest OS 内部的代理（Agent），实现了对系统调用的非侵入式拦截、解析与序列化。
+在离体模糊测试的“在体收集”阶段，框架必须精确记录测试负载（如 AI 训练程序）与 GPU 驱动之间的每一次交互。这些交互主要体现为用户态应用程序向内核态驱动发起的系统调用（如 `open`、`mmap` 以及最核心的 `ioctl`）。本框架利用定制化的 `strace` 工具作为客户机操作系统内部的代理，实现了对系统调用的非侵入式拦截、解析与序列化。
 
-=== 1. 基于 Ptrace 的核心拦截机制
-`strace` 的底层核心依赖于 Linux 内核提供的 `ptrace`（Process Trace）系统调用。`ptrace` 允许一个进程（Tracer，即 `strace`）去观察和控制另一个进程（Tracee，即被测 AI 负载）的执行流，并读取或修改其内存和寄存器状态。
+=== 基于 Ptrace 的核心拦截机制
+`strace` 的底层核心依赖于 Linux 内核提供的 `ptrace`系统调用。`ptrace` 允许一个进程，即 `strace`去观察和控制另一个进程，即被测 AI 负载的执行流，并读取或修改其内存和寄存器状态。
 
 当 `strace` 以追踪模式启动目标负载时，其拦截时序如下：
 1. *附着与陷入*：`strace` 调用 `ptrace(PTRACE_TRACEME, ...)` 附着到目标进程。当目标进程每次执行 `syscall` 指令尝试进入内核态时，内核会暂停目标进程的执行，并向 `strace` 发送 `SIGTRAP` 信号。
 2. *寄存器提取*：`strace` 收到信号被唤醒后，调用 `ptrace(PTRACE_GETREGS, ...)` 读取目标进程的 CPU 寄存器。在 x86_64 架构下，`RAX` 寄存器存储了系统调用号（如 `ioctl` 的编号为 16），而 `RDI, RSI, RDX` 等寄存器则存储了传入的参数（如设备文件描述符、命令字、数据结构指针）。
-3. *深层数据解析（Peek Data）*：由于 GPU 驱动的 `ioctl` 参数通常是包含多级指针的复杂结构体，单纯读取寄存器是不够的。定制版的 `strace` 会调用 `ptrace(PTRACE_PEEKDATA, ...)` 深入目标进程的内存空间，将指针指向的实际内容（如分配的显存大小、网络通信句柄等）完整拷贝出来。
+3. *深层数据解析*：由于 GPU 驱动的 `ioctl` 参数通常是包含多级指针的复杂结构体，单纯读取寄存器是不够的。定制版的 `strace` 会调用 `ptrace(PTRACE_PEEKDATA, ...)` 深入目标进程的内存空间，将指针指向的实际内容（如分配的显存大小、网络通信句柄等）完整拷贝出来。
 4. *放行执行*：解析完毕后，`strace` 调用 `ptrace(PTRACE_SYSCALL, ...)` 恢复目标进程的执行。当系统调用在内核态（GPU 驱动）执行完毕准备返回用户态时，`ptrace` 会再次触发拦截，允许 `strace` 记录该调用的返回值（如成功分配的句柄 ID）。
 
-=== 2. 在模糊测试工作流中的关键作用
+=== 在模糊测试工作流中的关键作用
 在原始的 Syzkaller 中，模糊测试的初始语料通常由人工编写的模板随机生成，这对于具有深层状态机的 GPU 驱动来说，几乎不可能随机出合法且复杂的初始化调用链。
 
-本框架中定制版的 `strace` 完美弥补了这一短板。如图 2.2 所示，在捕获阶段，它将截获的所有合法 `ioctl` 调用流（包含精准的硬件命令和结构体数据）序列化并落盘保存。这些真实的录制数据在离体阶段被转换为 Syzkaller 可识别的“初始种子（Seed Corpus）”。有了这些完美通过驱动浅层检查的真实业务调用链，Syzkaller 才能在此基础上进行高保真的变异，进而探及驱动深层的条件竞争和内存越界漏洞。
+本框架中定制版的 `strace` 完美弥补了这一短板。如图 2.2 所示，在捕获阶段，它将截获的所有合法 `ioctl` 调用流（包含精准的硬件命令和结构体数据）序列化并落盘保存。这些真实的录制数据在离体阶段被转换为 Syzkaller 可识别的“初始种子”。有了这些完美通过驱动浅层检查的真实业务调用链，Syzkaller 才能在此基础上进行高保真的变异，进而探及驱动深层的条件竞争和内存越界漏洞。
 
 #figure(
   scale(80%, reflow: true)[
@@ -210,7 +199,7 @@ Syzkaller 的多组件协作流程如图 2.1 所示。其核心工作机制是�
       node((1,2),[深层结构体解析(PTRACE_PEEKDATA)], shape: "rect"),
 
       node((0,3),[放行进入驱动逻辑(NVIDIA Driver)], fill: luma(240)),
-      node((1,3),[生成 Fuzzing 语料并落盘序列化], stroke: green, fill: rgb("ccffcc")),
+      node((1,3),[生成模糊测试语料并落盘序列化], stroke: green, fill: rgb("ccffcc")),
 
       // 连线逻辑
       edge((0,0), (0,1), "->", label: "调用陷入"),
@@ -230,10 +219,10 @@ Syzkaller 的多组件协作流程如图 2.1 所示。其核心工作机制是�
 == QEMU/KVM 与 VFIO 硬件直通技术原理
 要实现物理 GPU 的在体状态捕获与离体软件模拟，虚拟化层扮演着至关重要的角色。本系统严重依赖 QEMU 与 Linux 内核 KVM（Kernel-based Virtual Machine）模块的协同。
 
-=== 1. QEMU 与 KVM 的协同边界
-QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟器（Machine Emulator）。纯粹的 QEMU 使用动态二进制翻译（TCG）来执行虚拟机指令，性能极低。而 KVM 是 Linux 内核中的一个模块，它利用现代 CPU 的硬件虚拟化技术（如 Intel VT-x 或 AMD-V），允许虚拟机指令直接在物理 CPU 上全速执行。
+=== QEMU 与 KVM 的协同边界
+QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟器。纯粹的 QEMU 使用动态二进制翻译来执行虚拟机指令，性能极低。而 KVM 是 Linux 内核中的一个模块，它利用现代 CPU 的硬件虚拟化技术（如 Intel VT-x 或 AMD-V），允许虚拟机指令直接在物理 CPU 上全速执行。
 
-在实际运行中，虚拟机的每一个虚拟 CPU（vCPU）对应 Host 中的一个 QEMU 线程。当 vCPU 执行普通运算时，它在硬件的非根模式（Non-root Mode）下运行。但当虚拟机尝试执行敏感指令（如修改页表、读写特定 MMIO 寄存器或处理中断）时，CPU 会触发一种被称为 `VM_EXIT` 的硬件异常。此时，控制权陷入 Host 内核的 KVM 模块，KVM 会根据异常类型，决定是自行处理还是将其抛出给用户态的 QEMU 进程进行复杂的设备模拟。Moneta 的“记录重放”机制，正是通过在 QEMU 捕获到 MMIO 和 DMA 的 `VM_EXIT` 时记录数据来实现的，如图 2.3 所示：
+在实际运行中，虚拟机的每一个虚拟 CPU 对应宿主机中的一个 QEMU 线程。当 vCPU 执行普通运算时，它在硬件的非根模式下运行。但当虚拟机尝试执行敏感指令（如修改页表、读写特定 MMIO 寄存器或处理中断）时，CPU 会触发一种被称为 `VM_EXIT` 的硬件异常。此时，控制权陷入宿主机内核的 KVM 模块，KVM 会根据异常类型，决定是自行处理还是将其抛出给用户态的 QEMU 进程进行复杂的设备模拟。Moneta 的“记录重放”机制，正是通过在 QEMU 捕获到 MMIO 和 DMA 的 `VM_EXIT` 时记录数据来实现的，如图 2.3 所示：
 
 #figure(
   scale(80%, reflow: true)[
@@ -245,15 +234,15 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
 
       // 1. 使用 Typst 原生的单斜杠 `\` 进行文本换行
       // 2. 将节点文本居中对齐
-      node((0,0), align(center)[Guest OS \ (vCPU 线程 - 非根模式)], fill: rgb("eeffee")),
-      node((0,1), align(center)[Host OS 内核 \ (KVM 模块 - 根模式)], fill: rgb("ffcccc")),
+      node((0,0), align(center)[客户机操作系统内核 \ (vCPU 线程 - 非根模式)], fill: rgb("eeffee")),
+      node((0,1), align(center)[宿主机操作系统内核 \ (KVM 模块 - 根模式)], fill: rgb("ffcccc")),
       node((1,1), align(center)[QEMU 进程 \ (用户态设备模拟)], fill: rgb("ccccff")),
       node((0,2), align(center)[底层物理硬件 \ (CPU/内存)], fill: luma(240)),
 
       // 3. 使用 bend: 20deg 让双向的连线向外弯曲，自然地分离开来
-      // 客主机与 KVM 的交互 (垂直双向弯曲)
+      // 客户机与 KVM 的交互 (垂直双向弯曲)
       edge((0,0), (0,1), "-|>", bend: 20deg, label: [1. 敏感指令触发 VM_EXIT]),
-      edge((0,1), (0,0), "->", bend: 20deg, label: [4. VM_ENTRY \ 返回 Guest]),
+      edge((0,1), (0,0), "->", bend: 20deg, label: [4. VM_ENTRY \ 返回客户机]),
 
       // KVM 与 QEMU 的交互 (水平双向弯曲)
       edge((0,1), (1,1), "->", bend: 20deg, label: [2. KVM 抛出至用户态]),
@@ -266,14 +255,14 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
   caption:[QEMU 用户态进程与 KVM 内核模块协同架构]
 )
 
-=== 2. VFIO 硬件直通技术（PCI Passthrough）
+=== VFIO 硬件直通技术
 在捕获阶段，为了让虚拟机内的驱动程序能够像在物理机上一样完美初始化 GPU，必须使用 VFIO（Virtual Function I/O）技术将物理 GPU “直通”给虚拟机。VFIO 是 Linux 内核提供的一套安全的用户态驱动框架，它结合 IOMMU（输入输出内存管理单元），将特定的 PCIe 设备从宿主机原生的驱动（如 `nvidia` 内核模块）中隔离出来。
 
 直通的核心过程如下：
-1. 宿主机内核解除对 GPU 的绑定（Unbind）。
+1. 宿主机内核解除对 GPU 的绑定。
 2. 将 GPU 绑定到 `vfio-pci` 存根驱动上。
 3. QEMU 进程通过 `/dev/vfio/` 字符设备接口获取该 GPU 的控制权。
-4. IOMMU 负责重映射 DMA 地址，使得虚拟机内部物理地址（GPA）能够正确映射到宿主机机器地址（HPA），防止 GPU 进行越界 DMA 攻击。
+4. IOMMU 负责重映射 DMA 地址，使得虚拟机内部物理地址能够正确映射到宿主机机器地址，防止 GPU 进行越界 DMA 攻击。
 
 其详细数据流由图 2.4 所示：
 
@@ -285,9 +274,9 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
       spacing: (2.5em, 2.8em),
 
       // 垂直布局
-      node((0,0),[Guest OS(被测 NVIDIA 驱动)], fill: rgb("eeffee")),
+      node((0,0),[客户机操作系统(被测 NVIDIA 驱动)], fill: rgb("eeffee")),
       node((0,1),[QEMU 用户态进程(-device vfio-pci)], fill: rgb("ccccff")),
-      node((0,2), [Host Kernel(vfio-pci 驱动 & IOMMU)], fill: rgb("ffcccc")),
+      node((0,2), [宿主机内核(vfio-pci 驱动 & IOMMU)], fill: rgb("ffcccc")),
       node((0,3), [物理 GPU 设备], fill: luma(240)),
 
       // 交互连线
@@ -304,11 +293,11 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
 == Docker 容器化与 Linux 内核隔离原理
 为了解决模糊测试环境中繁杂的编译工具链冲突问题，本文全面引入了 Docker 容器化部署技术。Docker 的轻量级虚拟化本质上并非像 QEMU 那样模拟硬件，而是利用 Linux 内核提供的 Namespace @linux_namespaces 与 Cgroups @linux_cgroups 技术，实现进程级别的资源隔离。
 
-=== 1. Namespace 与 Cgroups
+=== Namespace 与 Cgroups
 - *Namespace（命名空间）*：隔离系统全局资源。在容器内部运行的 `build.sh` 或 QEMU 进程，其 PID 始终表现为从 1 开始（PID Namespace），且拥有完全独立的文件系统视图（Mount Namespace）与隔离的虚拟网卡栈（Network Namespace），互不干扰。
-- *Cgroups（控制组）*：限制资源配额。由于模糊测试会以极高的频率进行系统调用和状态重置，容易引发宿主机内存耗尽（OOM）。Docker 依赖 Cgroups 技术，允许对测试容器进行严格的内存边界限制和 CPU 核心数绑定，保证了多台实例在服务器上并发时不会拖垮宿主机。
+- *Cgroups（控制组）*：限制资源配额。由于模糊测试会以极高的频率进行系统调用和状态重置，容易引发宿主机内存耗尽。Docker 依赖 Cgroups 技术，允许对测试容器进行严格的内存边界限制和 CPU 核心数绑定，保证了多台实例在服务器上并发时不会拖垮宿主机。
 
-=== 2. 特权模式与设备挂载透传
+=== 特权模式与设备挂载透传
 通常情况下，为了安全起见，Docker 容器受到严格的 Seccomp @linux_seccomp 策略限制，禁止访问底层 PCI 总线与系统 `/dev` 目录。然而，由于本框架的收集阶段必须使用 VFIO 直通物理 GPU，容器被迫需要突破这一安全壁垒。在本文的部署架构中，本文使用了 `--privileged` 特权模式，并显式将硬件节点透传到容器内部。
 
 #figure(
@@ -319,7 +308,7 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
       spacing: (3.5em, 2.5em),
 
       // 宿主层作为背景
-      node((0,1.5), "Host OS / Linux Kernel", fill: rgb("ffebcc"), width: 220pt, height: 110pt),
+      node((0,1.5), "宿主机操作系统 / Linux 内核", fill: rgb("ffebcc"), width: 220pt, height: 110pt),
       node((-1,2), [Cgroups(资源限额)], fill: luma(240)),
       node((1,2), [Namespaces(资源隔离)], fill: luma(240)),
       node((0,3),[/dev/vfio & /sys/bus/pci(物理总线节点)], fill: luma(240)),
@@ -343,19 +332,19 @@ QEMU @bellard2005qemu 是一个运行在宿主机用户态的通用机器模拟�
 == 离体驱动模糊测试的核心支撑技术
 为了在不依赖真实物理GPU的情况下对驱动进行深层测试，业界与学术界逐步演化出了以下两项核心底层支撑技术：
 
-=== 快照重托管技术（Snapshot-and-Rehost）
-由于高端GPU硬件（如 NVIDIA A100/H100）成本高昂，且真实的物理设备难以支持成百上千个模糊测试实例的并发重置，快照重托管机制通过虚拟化层实现了执行状态与物理硬件的“剥离”。其基本原理是：首先在挂载物理 GPU 的“在体（In-Vivo）”环境中启动虚拟机，并让驱动程序完成最复杂的初始化阶段（如固件加载、显存池预热、上下文页表映射等）。当驱动到达目标测试状态时，Hypervisor（如 QEMU/KVM）会立即冻结当前虚拟机的 CPU 寄存器状态、内存镜像以及虚拟设备状态，并将其序列化保存为“快照”。随后，该快照可被无限复制，并在无物理 GPU 的普通服务器节点（“离体（Ex-Vivo）”环境）中被唤醒。近期的前沿研究（如 Nyx @schumacher2021nyx 框架）已进一步将 KVM 的快照恢复与增量重置时间压缩至毫秒级别，这为本框架在离体环境下实现高吞吐量的并发测试奠定了坚实的理论与工程基础。
+=== 快照重托管技术
+由于高端GPU硬件成本高昂，且真实的物理设备难以支持成百上千个模糊测试实例的并发重置，快照重托管机制通过虚拟化层实现了执行状态与物理硬件的“剥离”。其基本原理是：首先在挂载物理 GPU 的“在体”环境中启动虚拟机，并让驱动程序完成最复杂的初始化阶段（如固件加载、显存池预热、上下文页表映射等）。当驱动到达目标测试状态时，虚拟机监视器（如 QEMU/KVM）会立即冻结当前虚拟机的 CPU 寄存器状态、内存镜像以及虚拟设备状态，并将其序列化保存为“快照”。随后，该快照可被无限复制，并在无物理 GPU 的普通服务器节点（“离体”环境）中被唤醒。近期的前沿研究（如 Nyx @schumacher2021nyx 框架）已进一步将 KVM 的快照恢复与增量重置时间压缩至毫秒级别，这为本框架在离体环境下实现高吞吐量的并发测试奠定了坚实的理论与工程基础。
 
-=== 记录重放引擎（Record-and-Replay）
-仅仅将内存与 CPU 状态迁移至无硬件环境是不够的。由于离体环境缺失真实的 PCIe 设备，驱动程序一旦被唤醒并尝试读取硬件的 MMIO（内存映射I/O）寄存器或处理硬件中断，必然会导致读取到无意义的数据（通常为全 `0xFF`），进而引发内核崩溃（Kernel Panic）。
+=== 记录重放引擎
+仅仅将内存与 CPU 状态迁移至无硬件环境是不够的。由于离体环境缺失真实的 PCIe 设备，驱动程序一旦被唤醒并尝试读取硬件的 MMIO（内存映射I/O）寄存器或处理硬件中断，必然会导致读取到无意义的数据（通常为全 `0xFF`），进而引发内核崩溃。
 为了解决这一问题，记录重放技术在“在体”执行期间充当中间人，静默拦截并记录所有 CPU 与 PCIe 设备间的交互数据流（包括 DMA 传输和中断时序）。在进入“离体”模糊测试阶段时，重放引擎作为一个“虚拟硬件响应器”，当驱动程序读取特定物理地址时，按严格的时序向驱动注入此前记录的真实硬件数据，从而成功“欺骗”驱动程序，使其认为物理硬件依然存在。
 
 == Moneta 系统架构与原理剖析
-Moneta 将上述两项技术深度结合，提出了一套分阶段的 GPU 驱动测试流水线。其整体工作流高度依赖客主机（Guest）内运行的代理程序与宿主机（Host）管理程序之间的紧密同步协同。
+Moneta 将上述两项技术深度结合，提出了一套分阶段的 GPU 驱动测试流水线。其整体工作流高度依赖客户机内运行的代理程序与宿主机管理程序之间的紧密同步协同。
 
 如图 3.1 所示，Moneta 的工作流分为两个主要阶段：
-1. *在体收集阶段（In-Vivo Collection Phase）*：在挂载真实 GPU 的服务器上，Guest 运行包含特定图形或计算 API 调用的测试负载。当驱动程序完成初始化并准备接收用户态命令时，Guest 代理必须立即通知 Host 挂起虚拟机，拍摄系统快照，并开始录制硬件交互流。
-2. *离体模糊测试阶段（Ex-Vivo Fuzzing Phase）*：将收集到的快照与记录数据分发至无 GPU 的普通服务器上。Guest 从快照恢复执行，Syzkaller 接管执行流，通过不断变异系统调用和内存数据，利用重放引擎响应硬件查询，从而实现高并发的漏洞挖掘。
+1. *在体收集阶段*：在挂载真实 GPU 的服务器上，客户机运行包含特定图形或计算 API 调用的测试负载。当驱动程序完成初始化并准备接收用户态命令时，客户机代理必须立即通知宿主机挂起虚拟机，拍摄系统快照，并开始录制硬件交互流。
+2. *离体模糊测试阶段*：将收集到的快照与记录数据分发至无 GPU 的普通服务器上。客户机从快照恢复执行，Syzkaller 接管执行流，通过不断变异系统调用和内存数据，利用重放引擎响应硬件查询，从而实现高并发的漏洞挖掘。
 
 #figure(
   scale(80%, reflow: true)[
@@ -378,7 +367,7 @@ Moneta 将上述两项技术深度结合，提出了一套分阶段的 GPU 驱�
       node((1,0), [无GPU集群], fill: luma(240)),
       node((1,1), [加载 VM 快照]),
       node((1,2),[启动重放引擎注入录制数据]),
-      node((1,3),[Syzkaller 接管变异执行大规模Fuzzing]),
+      node((1,3),[Syzkaller 接管变异执行大规模模糊测试]),
 
       edge((1,0), (1,1), "->"),
       edge((1,1), (1,2), "->"),
@@ -391,9 +380,9 @@ Moneta 将上述两项技术深度结合，提出了一套分阶段的 GPU 驱�
 )
 
 === 记录重放与虚拟机退出的底层交互机制
-在深入分析 Moneta 的缺陷之前，有必要剖析其记录重放机制在 Linux KVM（Kernel-based Virtual Machine）层面的运作原理。当 Guest 操作系统中的 GPU 驱动尝试与物理 GPU 交互时，本质上是通过读写特定的一段物理内存地址（MMIO）来完成的。由于这些地址被映射为设备的 I/O 空间，驱动程序的读写指令会触发处理器的缺页异常或特定的硬件虚拟化退出事件（如 x86 架构下的 `VM_EXIT`）。
+在深入分析 Moneta 的缺陷之前，有必要剖析其记录重放机制在 Linux KVM层面的运作原理。当客户机操作系统中的 GPU 驱动尝试与物理 GPU 交互时，本质上是通过读写特定的一段物理内存地址（MMIO）来完成的。由于这些地址被映射为设备的 I/O 空间，驱动程序的读写指令会触发处理器的缺页异常或特定的硬件虚拟化退出事件（如 x86 架构下的 `VM_EXIT`）。
 
-KVM 模块在捕获到 `KVM_EXIT_MMIO` 事件后，会将执行流交还给用户态的 QEMU 进程。Moneta 的记录引擎正是在 QEMU 的内存分发总线（Memory Dispatch Bus）中埋点了记录钩子（Hooks），将所有的读写地址、数值与时序保存至硬盘文件中。
+KVM 模块在捕获到 `KVM_EXIT_MMIO` 事件后，会将执行流交还给用户态的 QEMU 进程。Moneta 的记录引擎正是在 QEMU 的内存分发总线中埋点了记录钩子，将所有的读写地址、数值与时序保存至硬盘文件中。
 
 图 3.2 展示了 KVM 虚拟化下的 MMIO 拦截与记录重放底层机制：
 
@@ -404,9 +393,9 @@ KVM 模块在捕获到 `KVM_EXIT_MMIO` 事件后，会将执行流交还给用�
       edge-stroke: 1pt,
       spacing: (2em, 3em),
 
-      node((0,0),[Guest OS GPU 驱动`ioread32() / iowrite32()`], corner-radius: 5pt),
+      node((0,0),[客户机OS GPU 驱动`ioread32() / iowrite32()`], corner-radius: 5pt),
       node((0,1), [硬件触发 VM_EXIT(MMIO 异常拦截)]),
-      node((0,2), [Host KVM 内核模块(陷入内核态)], fill: luma(240)),
+      node((0,2), [宿主机 KVM 内核模块(陷入内核态)], fill: luma(240)),
       node((0,3), [QEMU 用户态进程(内存总线分发)]),
       node((-0.5,4),[物理 GPU 设备(VFIO 直通)], stroke: blue),
       node((0.5,4),[Moneta 记录引擎(日志序列化)], stroke: green),
@@ -422,7 +411,7 @@ KVM 模块在捕获到 `KVM_EXIT_MMIO` 事件后，会将执行流交还给用�
 )
 
 === 原版侵入式 Hypercall 的代码级危害分析
-Moneta 原版为了让 Guest 能够精确控制上述记录流程的开启与快照的触发，选择了一种极其暴力的实现方式：直接修改宿主机 KVM 模块的底层 C 代码。在原版的 Linux 5.19 定制内核中，作者在 `/arch/x86/kvm/agamotto.c` 中基于 Agamotto 的修改进一步调整响应机制，使其同时可以满足来自 Moneta 客户机的 hypercall
+Moneta 原版为了让客户机能够精确控制上述记录流程的开启与快照的触发，选择了一种极其暴力的实现方式：直接修改宿主机 KVM 模块的底层 C 代码。在原版的 Linux 5.19 定制内核中，作者在 `/arch/x86/kvm/agamotto.c` 中基于 Agamotto 的修改进一步调整响应机制，使其同时可以满足来自 Moneta 客户机的 hypercall
 
 原作者的修改逻辑类似如下 C 代码片段：
 
@@ -443,26 +432,12 @@ Moneta 原版为了让 Guest 能够精确控制上述记录流程的开启与快
   	case 0:
   		vcpu->run->exit_reason = KVM_EXIT_AGAMOTTO_BEGIN;
   		break;
-  	case 1:
-  		vcpu->run->exit_reason = KVM_EXIT_AGAMOTTO_END;
-  		vcpu->run->hypercall.args[0] = a1;
-  		break;
-  	case 10:
-  		vcpu->run->exit_reason = KVM_EXIT_AGAMOTTO_DEBUG;
-  		vcpu->run->hypercall.args[0] = a1;
-  		vcpu->run->hypercall.args[1] = a2;
-  		vcpu->run->hypercall.args[2] = a3;
-  		break;
+    // ...
   	default:
   		ret = -KVM_EPERM;
   		goto out;
   		break;
   	}
-
-  	vcpu->arch.complete_userspace_io =
-  		kvm_agamotto_hypercall_complete_userspace;
-
-  	return 0;
 
   out:
   	kvm_register_write(vcpu, VCPU_REGS_RAX, ret);
@@ -474,7 +449,7 @@ Moneta 原版为了让 Guest 能够精确控制上述记录流程的开启与快
   caption: [对宿主机的 Linux 内核的 patch 中的关键修改],
 ) <hypercall>
 
-这种内核级修改虽然设计巧妙，但也带来了显著的工程化挑战。由于需要直接替换 Linux 内核行为，其部署与复现过程高度复杂，涉及内核编译、调试及运行环境适配等多个环节。在实际替换过程中，还会遇到大量兼容性与稳定性问题，例如：
+这种内核级修改虽然还算能用，但也带来了显著的工程化挑战。由于需要直接替换 Linux 内核行为，其部署与复现过程高度复杂，涉及内核编译、调试及运行环境适配等多个环节。在实际替换过程中，还会遇到大量兼容性与稳定性问题，例如：
 
 - 内核版本与硬件设施不适配无法启动
 - 自编译内核不包含安全签名，内核无法正常启动，需要另外的引导程序
@@ -482,11 +457,7 @@ Moneta 原版为了让 Guest 能够精确控制上述记录流程的开启与快
 - 添加固件后重新更新 `initramfs` 引导程序，结果因为引导占用空间过大而无法启动
 
 == 原版项目存在的工程化阻碍与缺陷
-尽管 Moneta 在理论上构建了完美的测试闭环，但在实际复现与工程落地的过程中，本文发现该开源项目存在致命的架构与工程缺陷。其核心问题集中在 Guest 与 Host 之间的“同步信号”实现机制上。
-
-+ *宿主机内核的深度侵入陷阱*：为了让 Guest 能够向 Host 发送图 3-1 中的“触发同步信号”，Moneta 原作者强行修改了 Host 的 Linux 5.19 源码，在 KVM 模块中硬编码添加了一个自定义的 Hypercall（超级调用）。这意味着，任何试图使用 Moneta 的安全研究员，必须将其服务器的宿主机内核降级并替换为该修改版本。在搭载现代网卡或新一代处理器的服务器上，强制降级或替换宿主内核往往导致系统网络失联、驱动不兼容甚至系统无法启动，使其彻底丧失了可移植性与工业界部署的可能。
-+ *调度器逻辑崩溃与编译断层*：原项目的代码库缺乏维护，不仅在 Makefile 中遗漏了生成核心文件 `syz-moneta` 的目标规则，其对 Syzkaller 源码的修改也引入了严重的竞态条件，导致调度器 `syz-manager` 在接收到第一次覆盖率反馈时频繁崩溃。
-+ *硬编码带来的僵化配置*：原项目大量使用了绝对路径硬编码（如将 bash 路径死锁为 `/bin/bash`，而非兼容性更好的 `/usr/bin/env bash`），同时将物理 GPU 的 PCI 直通地址硬编码在数十个脚本中。这导致在不同主板拓扑的机型上，系统均无法顺利寻找硬件并启动虚拟机。
+尽管 Moneta 在理论上构建了完美的测试闭环，但在实际复现与工程落地的过程中，本文发现该开源项目存在致命的架构与工程缺陷。其核心问题首先体现在*宿主机内核的深度侵入陷阱*上，原作者为了实现信号同步，强行修改了宿主机的 Linux 5.19 源码并硬编码了自定义 Hypercall，这导致测试框架与宿主机底层内核源码紧耦合，使得在搭载现代硬件的服务器上几乎无法部署。其次，*调度器逻辑崩溃与编译断层*严重影响了系统的可用性，原项目不仅在构建目标中遗漏了核心驱动文件，其对 Syzkaller 源码的修改还引入了严重的竞态条件，导致调度器频繁崩溃。最后，系统内部存在大量的*硬编码配置*，无论是 Shell 环境路径还是物理 GPU 的 PCI 地址均被固定在脚本中，导致其无法自适应不同主板拓扑的机型。
 
 
 = 宿主解耦重构与虚拟通信机制设计
@@ -494,31 +465,27 @@ Moneta 原版为了让 Guest 能够精确控制上述记录流程的开启与快
 针对前文指出的最严重的宿主机内核依赖问题，本文提出并实现了一种非侵入式的虚拟设备通信架构。本章将详细介绍该重构方案的设计哲学与底层实现逻辑。
 
 == 原生 Hypercall 机制的局限性分析
-Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作的底层指令（如 x86 架构下的 `VMCALL` 或 `VMMCALL` 指令）。在 Moneta 的原始设计中，测试负载在 Guest OS 中执行至目标状态时，会通过一个特定的内核模块触发原作者自定义的 Hypercall 编号。
-然而，根据 KVM 虚拟化标准，如果宿主机的 KVM 模块截获到未定义的 Hypercall，它会将其视为非法操作，抛出异常并向 Guest 注入 `#UD`（未定义指令）中断，直接导致虚拟机内核崩溃。这正是为什么原作者必须修改宿主机 Linux 5.19 内核的原因。显然，这种将测试框架的控制平面与宿主机底层内核源码紧耦合的设计，严重违背了软件工程中的模块化、低耦合与可移植性原则。
+Hypercall 是虚拟机向虚拟机监视器请求特权操作的底层指令（如 x86 架构下的 `VMCALL` 或 `VMMCALL` 指令）。在 Moneta 的原始设计中，测试负载在客户机操作系统中执行至目标状态时，会通过一个特定的内核模块触发原作者自定义的 Hypercall 编号。
+然而，根据 KVM 虚拟化标准，如果宿主机的 KVM 模块截获到未定义的 Hypercall，它会将其视为非法操作，抛出异常并向客户机注入未定义指令中断，直接导致虚拟机内核崩溃。这正是为什么原作者必须修改宿主机 Linux 5.19 内核的原因。显然，这种将测试框架的控制平面与宿主机底层内核源码紧耦合的设计，严重违背了软件工程中的模块化、低耦合与可移植性原则。
 
 == 基于 Virtio-serial 的虚拟串口通信通道
-为了实现 Guest 与 Host 控制平面的解耦，本文决定彻底废弃自定义 Hypercall，转而利用成熟的半虚拟化（Paravirtualization）技术，建立一个位于应用层（Application Layer）的通信通道。本文选用了基于 Virtio 标准 @russell2008virtio 的 `Virtio-serial` 设备。
+为了实现客户机与宿主机控制平面的解耦，本文决定彻底废弃自定义 Hypercall，转而利用成熟的半虚拟化技术，建立一个位于应用层的通信通道。本文选用了基于 Virtio 标准 @russell2008virtio 的 `Virtio-serial` 设备。
 
-`Virtio-serial` 是一种高效的字符设备总线，能够在不修改底层 KVM 内核模块的前提下，在 Guest OS 和 Host OS 之间提供高带宽的字符流传输。在重构过程中，本文在 QEMU 的启动命令行逻辑中注入了如下设备配置：
+`Virtio-serial` 是一种高效的字符设备总线，能够在不修改底层 KVM 内核模块的前提下，在客户机操作系统和宿主机操作系统之间提供高带宽的字符流传输。在重构过程中，本文在 QEMU 的启动命令行逻辑中注入了如下设备配置：
 
 ```bash
 -chardev socket,id=trigger0,path=/tmp/guest-trigger-channel,server,nowait \
 -device virtserialport,bus=virtio-serial2.0,chardev=trigger0,name=guest.snapshot.trigger
 ```
 
-如上述代码所示，QEMU 在 Host 端开放了一个 Unix Domain Socket（即文件 `/tmp/guest-trigger-channel`），并将其桥接映射为 Guest 内部的一个虚拟字符设备（通常体现为 `/dev/vportXpY`）。
+如上述代码所示，QEMU 在宿主机端开放了一个 Unix Domain Socket（即文件 `/tmp/guest-trigger-channel`），并将其桥接映射为客户机内部的一个虚拟字符设备（通常体现为 `/dev/vportXpY`）。
 
 == 基于状态机的宿主机代理守护进程实现
-在建立了虚拟通道后，同步的逻辑重心从 Host 的内核态上浮到了 Host 的用户态。本文在 Host 侧设计并实现了一个名为 `snapshot_proxy.py` 的轻量级异步代理守护进程（Proxy Daemon）。
+在建立了虚拟通道后，同步的逻辑重心从宿主机的内核态上浮到了宿主机的用户态。本文在宿主机侧设计并实现了一个名为 `snapshot_proxy.py` 的轻量级异步代理守护进程。
 
-该代理进程的核心工作逻辑是一个非阻塞的状态机，通过与 QEMU 的 QMP (QEMU Machine Protocol) 接口以及 Virtio 建立的 Socket 进行双向交互：
+该代理进程的核心工作逻辑是一个非阻塞的状态机，通过与 QEMU 的 QMP 接口以及 Virtio 建立的 Socket 进行双向交互。在运行过程中，守护进程首先在后台启动并持续监听指定端口。随后，当客户机端的 Moneta 完成初始化并向虚拟串口写入预定义的“触发标记”时，字符流会瞬间透传至 Host 端，代理进程捕获该标记后立即利用 QMP API 发送挂起指令以冻结 CPU 执行，并下发快照拍摄指令。最终，该机制实现了恢复状态的智能重分发，当快照在离体环境下被唤醒时，宿主机守护进程会根据系统当前所处的模糊测试阶段，向 Socket 写入对应的环境状态码，从而引导客户机内的进程平滑切换至变异测试分支。
 
-1. *持续监听*：守护进程在后台启动，并持续监听 `/tmp/guest-trigger-channel` 端口。
-2. *指令捕获与快照生成*：当 Guest 端的 Moneta Agent 执行完毕初始化并向虚拟串口写入预定义的“触发标记”时，字符流瞬间透传至 Host 端。`snapshot_proxy.py` 捕获该标记后，立即利用 QMP API，向 QEMU Monitor 发送挂起指令（`stop`），冻结 CPU 执行。随后下发快照拍摄指令（`savevm`）并启动外部记录日志的保存。
-3. *恢复状态的重分发*：该机制完美契合了离体复苏的逻辑。当该快照被迁移至“离体环境”唤醒时，Guest 会再次读取该虚拟串口以确认当前运行环境。此时的 Host 守护进程会根据系统当前处于“收集阶段”还是“模糊测试阶段”，向 Socket 写入不同的环境状态码，引导 Guest 内的进程走向继续录制或交由 Syzkaller 变异的不同代码分支。
-
-如图 4.1 所示，本文的非侵入式架构在 Guest 与 Host 之间建立了一条标准化的、低延迟的通信通道，彻底解除了对宿主机内核的依赖：
+如图 4.1 所示，本文的非侵入式架构在客户机与宿主机之间建立了一条标准化的、低延迟的通信通道，彻底解除了对宿主机内核的依赖：
 
 #figure(
   scale(80%, reflow: true)[
@@ -528,9 +495,9 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
       spacing: (2.5em, 2em),
 
       // 旧架构
-      node((0,0),[Guest OS(执行触发指令)]),
+      node((0,0),[客户机OS(执行触发指令)]),
       node((0,1),[自定义 Hypercall(引发虚拟机退出)], stroke: red),
-      node((0,2),[定制 Host Linux 5.19(强侵入性内核修改)], stroke: red, fill: rgb("ffcccc")),
+      node((0,2),[定制宿主机内核 Linux 5.19(强侵入性内核修改)], stroke: red, fill: rgb("ffcccc")),
       node((0,3),[QEMU 进程(拍摄快照)]),
       edge((0,0), (0,1), "->"),
       edge((0,1), (0,2), "->"),
@@ -540,7 +507,7 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
       edge((1,0), (1,4), stroke: (dash: "dotted", thickness: 0.5pt)),
 
       // 新架构 (本文贡献)
-      node((2,0),[Guest OS(读写 /dev/vport...)]),
+      node((2,0),[客户机OS(读写 /dev/vport...)]),
       node((2,1),[Virtio-serial 设备(标准半虚拟化)], stroke: blue),
       node((2,2),[Host: Unix Socket(/tmp/guest-trigger)], stroke: blue, fill: rgb("ccccff")),
       node((2,3),[Host 用户态 Proxy(snapshot_proxy.py)], stroke: blue, fill: rgb("ccccff")),
@@ -558,9 +525,9 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 这一重构在本质上将系统控制平面从内核态安全地转移至用户态，彻底解放了系统对特定宿主机环境的苛刻要求，使得框架能够在任何支持标准 KVM 的现代 Linux 发行版上平滑运行。
 
 === Proxy 状态机的代码实现与 QMP 交互逻辑
-为了详尽展示重构后控制平面的转移机制，下面展示了 `snapshot_proxy.py` 核心状态机的大致实现思路。该脚本利用 Python 的异步 I/O 特性（`asyncio`）同时维持与 Virtio Socket 和 QEMU Monitor (QMP) 的长连接。
+为了详尽展示重构后控制平面的转移机制，下面展示了 `snapshot_proxy.py` 核心状态机的大致实现思路。该脚本利用 Python 的异步 I/O 特性同时维持与 Virtio Socket 和 QEMU Monitor (QMP) 的长连接。
 
-当 Guest 发送字符 `TRIGGER_SNAPSHOT` 时，Proxy 会执行一系列原子操作，其简化的控制流伪代码如下所示：
+当客户机发送字符 `TRIGGER_SNAPSHOT` 时，Proxy 会执行一系列原子操作，其简化的控制流伪代码如下所示：
 @lst:snapshot_proxy
 
 #figure(
@@ -569,37 +536,40 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 
   async def handle_guest_trigger(qmp_writer, serial_reader, serial_writer):
       while True:
-          # 1. 持续监听来自 Guest 的虚拟串口消息
+          # 1. 持续监听来自客户机的虚拟串口消息
           msg = await serial_reader.readuntil(b'\n')
           if b"TRIGGER_SNAPSHOT" in msg:
-              print("[PROXY] 捕获快照请求，正在冻结虚拟机...")
+              print("[PROXY] 捕获快照请求...")
 
               # 2. 通过 QMP 接口暂停 QEMU 执行
-              qmp_writer.write(json.dumps({"execute": "stop"}).encode() + b'\n')
+              qmp_writer.write(json.dumps({
+                "execute": "stop"
+              }).encode() + b'\n')
               await qmp_reader.readline() # 等待暂停确认
 
               # 3. 触发快照落盘
-              print("[PROXY] 正在执行 savevm 拍摄内存与设备快照...")
+              print("[PROXY] 正在拍摄快照...")
               qmp_writer.write(json.dumps({
                   "execute": "human-monitor-command",
-                  "arguments": {"command-line": "savevm moneta_snap"}
+                  "arguments": {
+                    "command-line": "savevm moneta_snap"
+                  }
               }).encode() + b'\n')
 
               # 4. 快照拍摄完成，注入唤醒标志
-              # 此时保存的快照中，Guest 正在等待 serial_reader 的回复
               print("[PROXY] 快照完成，等待环境迁移...")
 
-              # 5. 向离体环境的 Guest 返回状态码
+              # 5. 向离体环境的客户机返回状态码
               if IS_EX_VIVO_FUZZING_MODE:
-                  serial_writer.write(b"MODE_FUZZING\n")
+                  serial_writer.write(b"FUZZING\n")
               else:
                   # 在体环境继续收集
-                  serial_writer.write(b"MODE_COLLECTING\n")
+                  serial_writer.write(b"SNAPSHOT\n")
   ```,
   caption: [snapshot_proxy.py 核心状态机逻辑],
 ) <snapshot_proxy>
 
-从上述代码可以看出，通过 Virtio-serial 与 QMP 的联动，本文彻底避免了任何内核级的修改。在离体服务器上唤醒虚拟机时，`snapshot_proxy.py` 只需以 `IS_EX_VIVO_FUZZING_MODE=True` 的参数启动，Guest 内部的测试负载一旦苏醒并读取到 `MODE_FUZZING`，便会自觉终止录制，将控制权平滑移交给 Syzkaller 引擎。这一通信桥梁的设计是本框架稳定运行的基石。
+从上述代码可以看出，通过 Virtio-serial 与 QMP 的联动，本文彻底避免了任何内核级的修改。在离体服务器上唤醒虚拟机时，`snapshot_proxy.py` 只需以 `IS_EX_VIVO_FUZZING_MODE=True` 的参数启动，客户机内部的测试负载一旦苏醒并读取到 `MODE_FUZZING`，便会自觉终止录制，将控制权平滑移交给 Syzkaller 引擎。这一通信桥梁的设计是本框架稳定运行的基石。
 
 图 4.2 展示了 Proxy 状态机在快照拍摄与恢复过程中的流转过程：
 
@@ -611,11 +581,11 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
       spacing: (3em, 1.5em),
 
       node((0,0), "IDLE 监听状态", shape: "rect"),
-      node((1,0), "Guest 发送 Trigger", shape: "rect"),
+      node((1,0), "客户机发送 Trigger", shape: "rect"),
       node((2,0), "冻结 QEMU (STOP)", shape: "rect", fill: rgb("ffcccc")),
       node((2,1), "执行 savevm", shape: "rect", fill: rgb("ffcccc")),
       node((1,1), "快照迁移至离体机", shape: "rect"),
-      node((0,1), "发送 MODE_FUZZING", shape: "rect", fill: rgb("ccffcc")),
+      node((0,1), "发送 FUZZING 状态", shape: "rect", fill: rgb("ccffcc")),
 
       edge((0,0), (1,0), "->"),
       edge((1,0), (2,0), "->", label: "捕获信号"),
@@ -636,8 +606,8 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 == 自动化构建流水线总览 (Pipeline Overview)
 本框架的构建流程被抽象为一套线性的状态机，旨在将复杂的异构环境准备过程转化为可预测的自动化任务。如图 5.1 所示，整个流水线由四个核心阶段组成：
 
-1. *环境初始化阶段*：负责 Host 与 Guest 基础依赖的静态编译，包括补齐原版 Syzkaller 的构建断层。
-2. *虚拟化环境适配阶段*：定制化编译 QEMU 及其重放插件，并将特定版本的 NVIDIA 驱动注入 Guest 镜像。
+1. *环境初始化阶段*：负责宿主机与客户机基础依赖的静态编译，包括补齐原版 Syzkaller 的构建断层。
+2. *虚拟化环境适配阶段*：定制化编译 QEMU 及其重放插件，并将特定版本的 NVIDIA 驱动注入客户机镜像。
 3. *在体快照捕获阶段*：通过本文设计的非侵入式虚拟串口通道，自动化执行 AI 负载并触发系统快照，记录 MMIO 数据。
 4. *离体模糊测试阶段*：实现快照重托管，由 `syz-manager` 接管并启动高吞吐量的变异测试。
 
@@ -669,7 +639,7 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 == 核心组件逻辑缺陷与构建流修复
 在环境初始化阶段，本文首先全面审查并补齐了 Syzkaller 修改版的 Makefile 构建链。在原代码仓库中，作者遗漏了 `make moneta` 的入口目标，导致后续阶段依赖的核心驱动文件 `syz-moneta` 无法生成。本文重构了 Makefile 规则链，确保依赖文件的按序编译。
 
-此外，针对原项目中 `syz-manager`（负责调度和管理模糊测试实例的守护进程）存在的数组越界风险（如 @moneta-syz-manager 所示），本文引入了动态切片扩展逻辑，使其能够支持多达 8 个并发快照点的离体测试。
+此外，针对原项目中 `syz-manager`（负责调度和管理模糊测试实例的守护进程）存在的数组越界风险（如代码 5.2 所示），本文引入了动态切片扩展逻辑，使其能够支持多达 8 个并发快照点的离体测试。
 
 @lst:original-moneta-syz-manager
 
@@ -678,7 +648,6 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
   // moneta
   if mgr.cfg.SnapShotNum > 0 {
     for _, c := range p.Calls {
-				// Assume that each snappoint has a corresponding corpus.
 				if c.Meta.Name == "syz_get_snapfd" {
 					mgr.FdCount[rec.SnapPoint] = append(mgr.FdCount[rec.SnapPoint], 0) // mgr.FdCount[0] not used
 				} else if c.Meta.Name == "syz_get_snapfd$nvidia" {
@@ -699,12 +668,9 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 
 #figure(
   ```go
-  // moneta: record fd type per snapshot point
   if mgr.cfg.SnapShotNum > 0 {
     if rec.SnapPoint < 0 {
-      // ignore invalid snap point
     } else {
-      // Ensure mgr.FdCount is large enough to index rec.SnapPoint.
       if rec.SnapPoint >= len(mgr.FdCount) {
         newLen := rec.SnapPoint + 1
         newFd := make([][]int, newLen)
@@ -712,9 +678,8 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
         mgr.FdCount = newFd
       }
       for _, c := range p.Calls {
-        // Assume that each snappoint has a corresponding corpus.
         if c.Meta.Name == "syz_get_snapfd" {
-          mgr.FdCount[rec.SnapPoint] = append(mgr.FdCount[rec.SnapPoint], 0) // mgr.FdCount[0] not used
+          mgr.FdCount[rec.SnapPoint] = append(mgr.FdCount[rec.SnapPoint], 0)
         } else if c.Meta.Name == "syz_get_snapfd$nvidia" {
           mgr.FdCount[rec.SnapPoint] = append(mgr.FdCount[rec.SnapPoint], 1)
         } else if c.Meta.Name == "syz_get_snapfd$mali" {
@@ -746,7 +711,7 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
       spacing: (3.5em, 1.5em),
 
       node((0,0), "Step 0: 检查基础依赖", shape: "rect"),
-      node((1,0), "Step 1: 编译 Guest OS", shape: "rect"),
+      node((1,0), "Step 1: 编译客户机OS", shape: "rect"),
       node((1,1), "Step 2: 编译 Syzkaller", shape: "rect"),
       node((0,1), "Step 3: 构建 Moneta Agent", shape: "rect"),
 
@@ -756,7 +721,7 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 
       node((0,3), "Step 7: 执行 AI 负载", shape: "rect", fill: rgb("ccffcc")),
       node((0,4), "Step 8: 虚拟串口触发快照", shape: "rect", fill: rgb("ccffcc")),
-      node((1,4), "Step 9: 启动离体 Fuzzing", shape: "rect", fill: rgb("ccccff")),
+      node((1,4), "Step 9: 启动离体模糊测试", shape: "rect", fill: rgb("ccccff")),
 
       edge((0,0), (1,0), "->"),
       edge((1,0), (1,1), "->"),
@@ -780,17 +745,17 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 == 硬件参数动态化与依赖解耦
 为彻底抛弃原项目的硬件拓扑死锁，本文引入了全生命周期的环境变量解析机制。在原始 Moneta 中，PCI 设备地址被死死地定死在 QEMU 启动脚本中（例如固定的 `0000:01:00.0`），这在多卡集群或插槽不同的服务器上会引发严重的设备分配冲突。
 
-本文重构了配置分发逻辑。使用者可通过统一的 `.env` 文件定义宿主机负责渲染的默认 GPU 与分配给 QEMU VFIO 直通测试的被测 GPU（如 `TEST_GPU_PCI_ID=0000:41:00.0`）。系统启动时，配置解析器会自动使用正则表达式修改 QEMU 的 `-device vfio-pci` 参数。同时，框架会动态提取用户配置的 `NVIDIA_DRIVER_VERSION`，自动组装官方下载链接，并在 Guest 镜像构建阶段静默将其安装至内核中。这种解耦设计赋予了框架对异构计算集群极强的适应能力。
+本文重构了配置分发逻辑。使用者可通过统一的 `.env` 文件定义宿主机负责渲染的默认 GPU 与分配给 QEMU VFIO 直通测试的被测 GPU（如 `TEST_GPU_PCI_ID=0000:41:00.0`）。系统启动时，配置解析器会自动使用正则表达式修改 QEMU 的 `-device vfio-pci` 参数。同时，框架会动态提取用户配置的 `NVIDIA_DRIVER_VERSION`，自动组装官方下载链接，并在客户机镜像构建阶段静默将其安装至内核中。这种解耦设计赋予了框架对异构计算集群极强的适应能力。
 
 == AI 算力测试负载的引入
-原项目在录制阶段仅使用了一个非常基础的 3D 图形渲染负载（如简单的 OpenGL 绘制），这类负载调用链极浅，难以触发现代 GPU 架构（如 Tensor Core 矩阵核心）及统一内存架构（Unified Virtual Memory, UVM）的深层交互逻辑。
+原项目在录制阶段仅使用了一个非常基础的 3D 图形渲染负载（如简单的 OpenGL 绘制），这类负载调用链极浅，难以触发现代 GPU 架构（如 Tensor Core 矩阵核心）及统一内存架构的深层交互逻辑。
 
 为了贴合当下的工业界实际业务（即大规模 AI 算力中心），本文重新设计了作为快照触发点的目标应用程序。本文使用 PyTorch 框架 @paszke2019pytorch 编写了一系列模拟现代深度学习模型训练的核心算子负载，包括：
-- 大规模矩阵乘法（cuBLAS GEMM）
+- 大规模矩阵乘法
 - 跨设备张量复制与统一内存池的并发分配
-- 高密度的异步 CUDA 核函数（Kernel）调度
+- 高密度的异步 CUDA 核函数调度
 
-通过这些具有极高计算密度和显存资源争用的真实业务负载，重构后的 Moneta 能够成功引导 GPU 驱动程序进入最复杂、最易发生并发死锁的深层状态机分支。在这些深层状态下拍摄快照并进行模糊变异，极大提升了所挖掘出的驱动漏洞的安全价值与实际业务影响。正如 CAB-Fuzz @zhao2022cab 等前沿研究所指出的，只有在真实且密集的并发交互下，闭源驱动中的深层条件竞争（Race Condition）和死锁漏洞才会被有效激发。
+通过这些具有极高计算密度和显存资源争用的真实业务负载，重构后的 Moneta 能够成功引导 GPU 驱动程序进入最复杂、最易发生并发死锁的深层状态机分支。在这些深层状态下拍摄快照并进行模糊变异，极大提升了所挖掘出的驱动漏洞的安全价值与实际业务影响。正如 CAB-Fuzz @zhao2022cab 等前沿研究所指出的，只有在真实且密集的并发交互下，闭源驱动中的深层条件竞争和死锁漏洞才会被有效激发。
 
 == 模糊测试全生命周期自动化封装
 为将繁杂的操作“黑盒化”，本文基于日志追踪与状态机原理，开发了统一的总控调度脚本 `build.sh`，该脚本将整个测试流程严格划分为 10 个防错重试步骤：
@@ -809,7 +774,7 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 [INFO] Step 10/10: Extracting trace results and starting fuzzing
 ```
 
-该工作流会保存当前运行到的步骤，并在遇到偶发性错误崩溃时（如网络波动）自动重试，同时该工作流会自动完成：编译环境校验、拉取并交叉编译客主机内核、自动解绑宿主机 GPU 并绑定 VFIO 通道、拉起定制版 QEMU 并在后台唤醒 `snapshot_proxy.py` 代理、执行 AI 负载并截获快照，最终启动 `syz-manager` 开启变异测试。安全工程师只需执行 `./build.sh` 一条指令，即可自动化运行整个编译与测试管线。
+该工作流会保存当前运行到的步骤，并在遇到偶发性错误崩溃时（如网络波动）自动重试，同时该工作流会自动完成：编译环境校验、拉取并交叉编译客户机内核、自动解绑宿主机 GPU 并绑定 VFIO 通道、拉起定制版 QEMU 并在后台唤醒 `snapshot_proxy.py` 代理、执行 AI 负载并截获快照，最终启动 `syz-manager` 开启变异测试。安全工程师只需执行 `./build.sh` 一条指令，即可自动化运行整个编译与测试管线。
 
 
 = 容器化部署架构与系统测试评估
@@ -819,11 +784,7 @@ Hypercall 是虚拟机向 Hypervisor（虚拟机监视器）请求特权操作�
 == 容器化隔离机制与自适应硬件探测
 在实际部署中，C/C++ 和 Go 的编译工具链版本冲突（如 GCC 版本不符）极易导致内核及 Syzkaller 编译彻底失败。为此，本文将所有依赖项抽象包装为一个独立的容器化项目 `moneta-modified-docker`。
 
-通过在 Dockerfile 中固定所有依赖树的哈希版本，本文为构建流程提供了一个绝对“洁净”且可复现的沙箱环境。更为创新的是，为解决 Docker 容器无法直接操作底层 PCI 硬件的问题，本文在容器启动的 `Entrypoint` 脚本中植入了自适应硬件拓扑扫描逻辑：
-
-1. *拓扑感知*：容器启动时，探测宿主机映射的 `/sys/bus/pci/devices/` 目录，获取真实 GPU 资源分布。
-2. *特权挂载*：使用高权限模式（`--privileged`）及设备挂载标志透传所需的 I/O 控制节点。
-3. *驱动热替换*：在容器内动态加载 VFIO 内核驱动，使用脚本自动解绑宿主机原生 NVIDIA 驱动对指定测试 GPU 的占用，并将其无缝透传给容器内运行的 QEMU 实例。
+为解决编译工具链冲突并规范部署环境，本文将所有依赖项封装为独立的容器化项目。在容器启动过程中，入口脚本通过植入自适应硬件拓扑扫描逻辑，首先探测宿主机映射的物理设备目录以获取真实的 GPU 资源分布。随后，系统利用 Docker 的特权模式与设备挂载标志透传所需的 I/O 控制节点。最后，通过动态加载 VFIO 内核驱动，脚本能够自动解绑宿主机原生驱动对指定显卡的占用，并将其无缝透传给容器内运行的 QEMU 实例，从而实现了异构算力环境下的“即插即用”能力。
 
 这一系列深度集成的自动化配置，使得本框架完全具备了在现代云原生集群中“即插即用”的大规模并发测试能力。
 
@@ -845,15 +806,15 @@ echo $GPU_PCI_ID > /sys/bus/pci/devices/$GPU_PCI_ID/driver/unbind || true
 # 3. 将设备绑定至 VFIO 驱动（赋予 QEMU 独占访问权）
 modprobe vfio-pci
 echo $VND_DEV > /sys/bus/pci/drivers/vfio-pci/new_id
-echo "✅ 成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
+echo "成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
 ```
 通过上述脚本抽象，只要安全测试人员在不同配置的机器上修改 `.env` 环境变量，容器内部逻辑即可自动适配，避免了传统内核测试中每次换机器都需要重构整个环境的厄运。
 
 == 部署效率与性能数据量化
-在构建速度方面，依托全自动化 `build.sh` 脚本，系统成功实现了在标准 Ubuntu 22.04 环境下 100% 的部署成功率。从克隆代码到成功触发快照并进入模糊测试，平均耗时缩短至约 25 分钟（主要为交叉编译 QEMU 与 Linux 内核的时间），完全消除了原项目长达数天的人工试错成本。
+在构建速度方面，依托全自动化 `build.sh` 脚本，系统成功实现了在标准 Ubuntu 22.04 环境下 90% 的部署成功率。从克隆代码到成功触发快照并进入模糊测试，平均耗时缩短至约 25 分钟（主要为交叉编译 QEMU 与 Linux 内核的时间），完全消除了原项目长达数天的人工试错成本。
 
 系统在完全剥离物理 GPU 的离体服务器环境中，通过重放引擎精确回应硬件 MMIO 交互，成功恢复了驱动内部复杂的运行状态。在持续 48 小时的超长时间抗压测试监控中，`syz-manager` 始终保持正常调度，未出现原项目中的并发崩溃现象。
-测试吞吐量（Throughput）在单节点单虚拟机的情况下，稳定维持在约 850 exec/s（每秒执行测试用例数）。这一高吞吐量证明了虚拟串口代理通信机制（Virtio-serial）在事件同步时极低的延迟（通常低于 5ms），以及本文在代码层面修复调度器并发逻辑的正确性与优越性。
+测试吞吐量在单节点单虚拟机的情况下，稳定维持在约 850 exec/s（每秒执行测试用例数）。这一高吞吐量证明了虚拟串口代理通信机制在事件同步时极低的延迟（通常低于 5ms），以及本文在代码层面修复调度器并发逻辑的正确性与优越性。
 
 
 == 实验环境与测试方案设定
@@ -874,13 +835,13 @@ echo "✅ 成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
 
 而在本文设计的 Virtio-serial 架构与自适应容器化封装下，这一痛点被彻底攻克。
 
-实验结果表明，在搭载 Linux 6.8.0 内核的标准 Ubuntu 22.04 宿主机上，通过执行本文提供的 `docker run` 命令与自动化 `build.sh` 脚本，系统能够 100% 成功识别目标 GPU 并完成 VFIO 直通配置。从零开始构建依赖、编译客主内核、执行 AI 负载捕获快照，直到成功唤醒模糊测试引擎的全流程平均耗时仅需约 150 分钟。这证明了本文在工程可用性上的决定性突破。
+实验结果表明，在搭载 Linux 6.8.0 内核的标准 Ubuntu 22.04 宿主机上，通过执行本文提供的 `docker run` 命令与自动化 `build.sh` 脚本，系统能够在大部分正常情况下成功识别目标 GPU 并完成 VFIO 直通配置。从零开始构建依赖、编译客户机内核、执行 AI 负载捕获快照，直到成功唤醒模糊测试引擎的全流程平均耗时仅需约 150 分钟。这证明了本文在工程可用性上的决定性突破。
 
 == 模糊测试有效性与路径覆盖分析
 为了进一步验证重构后系统在漏洞挖掘方面的有效性，本节记录并分析了模糊测试执行过程中的动态覆盖率数据。
 
 === 代码路径增长曲线分析
-代码路径（Paths Found）是衡量模糊测试引擎探测深度的关键指标。本文在离体环境中对 NVIDIA 驱动执行了 48 小时的连续测试，并实时提取了 Syzkaller 语料库中的路径发现情况。
+代码路径是衡量模糊测试引擎探测深度的关键指标。本文在离体环境中对 NVIDIA 驱动执行了 48 小时的连续测试，并实时提取了 Syzkaller 语料库中的路径发现情况。
 
 #figure(
   image("images/corpus-coverage-curve.png", width: 90%),
@@ -890,7 +851,7 @@ echo "✅ 成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
 如图 6.2 所示，重构后的框架在测试初期呈现出极高的路径发现效率。分析其原因，主要得益于本文在第五章中引入的 AI 算力测试负载，该负载生成的初始语料质量远高于原版项目的简单图形渲染负载，使得 Fuzzer 能够绕过驱动的浅层合法性检查，直接切入内核态的复杂逻辑。
 
 === 覆盖率反馈质量评估
-通过对 KCOV 捕获的 RIP 轨迹进行离线分析，本文发现新路径大量集中在 GPU 驱动的内存管理（Memory Management）和异步命令调度（Command Submission）模块。实验数据表明，在引入张量计算负载后，针对 `nv_uvm`（统一内存管理）模块的代码覆盖率相比原版负载提升了约 35%，这有力地证明了本文对测试负载扩展的必要性。
+通过对 KCOV 捕获的内核指令指针轨迹进行离线分析，本文发现新路径大量集中在 GPU 驱动的内存管理和异步命令调度模块。实验数据表明，在引入张量计算负载后，针对 `nv_uvm`（统一内存管理）模块的代码覆盖率相比原版负载提升了约 35%，这有力地证明了本文对测试负载扩展的必要性。
 
 === 系统稳定性与并发可靠性
 原版 Moneta 由于深度侵入宿主机内核 Hypercall 机制，在多核并发环境下极易触发内核竞态冲突，导致宿主机系统挂起。本文通过引入非侵入式虚拟串口，显著提升了系统的鲁棒性。
@@ -903,7 +864,7 @@ echo "✅ 成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
     [*评估指标*], [*原版 Moneta (学术原型)*], [*本文重构系统*],
     [宿主机稳定性], [高并发下偶发 Kernel Panic], [长期运行无异常挂起],
     [通信延迟], [低 (内核级跳转)], [低 (Virtio-serial 毫秒级)],
-    [部署成功率], [约 30% (受限于内核版本)], [100% (容器化环境)],
+    [部署成功率], [约 30% (受限于内核版本)], [90% (容器化环境)],
     [异常自动恢复], [需手动重启物理机], [支持 Docker 容器自动拉起],
   ),
   caption: [本框架与原版 Moneta 在工程稳定性上的对比评估],
@@ -916,80 +877,83 @@ echo "✅ 成功将 GPU $GPU_PCI_ID 直通至容器级 VFIO 通道"
 
 虽然本文重构并实现的 GPU 驱动模糊测试框架已在 NVIDIA 闭源驱动生态与 AI 测试负载中展现出了卓越的可用性与稳定性，但异构计算生态呈现出高度的多样性。为了证明本框架具有工业级的生命力与长远的科研价值，本章将从跨厂商异构算力支持、智能化变异策略以及云原生分布式调度三个维度，详细阐述本框架的可扩展性设计与未来演进路线。
 
-== 跨厂商异构 GPU 驱动的泛化支持 (Cross-Vendor Support)
-当前版本的框架在 VFIO 绑定与设备节点识别上主要针对 NVIDIA 架构进行了优化。然而，现代数据中心正逐步引入 AMD（如 MI300X 系列）与 Intel（如 Data Center GPU Max 系列）的高性能计算加速卡。本框架的 Virtio-serial 状态机代理与记录重放架构在设计之初已秉持了“硬件解耦”的思想，为未来扩展跨厂商 GPU 驱动提供了天然的接入层。
-
-=== 1. AMDGPU 开源驱动生态的适配接口
-与 NVIDIA 核心驱动的闭源策略不同，AMD 采用了完全开源的内核驱动模块（`amdgpu`）以及开源的 Linux DRM（Direct Rendering Manager）子系统栈。
-若将本框架扩展至 AMD 平台，可进行如下演进：
-- *白盒覆盖率反馈集成*：无需像闭源驱动那样强行挂载 KCOV，对于 AMD 驱动，可以在源码编译期直接注入更细粒度的 Sanitizer（如 KASAN、KCSAN）与基于基本块（Basic Block）的覆盖率探针，从而实现更精准的反馈引导。
-- *Ring Buffer 机制重放适配*：AMD 驱动使用不同于 NVIDIA 的命令提交机制。未来只需在宿主机 Proxy 守护进程的 `snapshot_proxy.py` 中引入一套“厂商感知接口（Vendor-Aware Interface）”，在捕获阶段动态识别 AMD 的 PCIe Base Address Registers (BARs)，针对性地记录其特定的 DMA 门铃（Doorbell）寄存器交互流即可。
-
-=== 2. Intel GPU 与微控制器 (GuC/HuC) 调度适配
-Intel GPU 驱动（如 `i915` 或新一代 `xe` 驱动）大量依赖于硬件内部的微控制器（GuC 负责任务调度，HuC 负责媒体解码）来进行命令卸载。
-未来在扩展至 Intel 平台时，框架的“在体收集阶段”不仅需要捕获主机 CPU 与 GPU 之间的 MMIO 交互，还需要记录宿主机向 GuC 提交的固件与上下文状态。借助本文搭建的 Docker 环境入口脚本拓扑扫描逻辑，未来只需在 `.env` 中指定 `GPU_VENDOR=INTEL`，容器即可自动拉起针对 Intel 架构定制的 QEMU 固件快照逻辑，完成平滑迁移。
+== 跨厂商异构 GPU 驱动的泛化支持
+针对跨厂商异构 GPU 驱动的泛化支持，本框架在设计之初便秉持了硬件解耦的思想。对于 AMD 平台，可以利用其开源内核驱动模块的特性，在源码编译期注入更细粒度的 Sanitizer 探针，并针对其特定的 DMA 门铃寄存器交互流进行重放适配。对于 Intel GPU 驱动，则需要进一步捕获宿主机向微控制器提交的固件与上下文状态。此外，结合大语言模型的智能化变异引擎也是未来的重要演进方向，通过 LLM 自动推理闭源驱动 ioctl 接口的边界约束并生成高质量的 Syzlang 模板，将极大降低逆向工程的人力成本，并能更有效地探测到人类专家难以预见的边缘结构体变异路径。
 
 == 结合大语言模型 (LLM) 的智能化变异引擎
-Syzkaller 原本依赖人工编写的系统调用描述语言（Syzlang）来知晓如何变异数据结构。对于闭源的 GPU 驱动，提取这些深层 `ioctl` 参数结构往往需要耗费安全专家数月的时间进行逆向工程（Reverse Engineering）。
+Syzkaller 原本依赖人工编写的系统调用描述语言（Syzlang）来知晓如何变异数据结构。对于闭源的 GPU 驱动，提取这些深层 `ioctl` 参数结构往往需要耗费安全专家数月的时间进行逆向工程。
 
-随着大语言模型（如 GPT-4, Llama-3, DeepSeek）在代码理解领域的突破，本框架计划在未来演进中引入 *LLM 指导的自动化语料生成（LLM-Guided Fuzzing，例如 Fuzz4All @xia2024fuzz4all 等前沿研究）*机制：
+随着大语言模型（如 GPT-4, Llama-3, DeepSeek）在代码理解领域的突破，本框架计划在未来演进中引入 *LLM 指导的自动化语料生成 @xia2024fuzz4all *机制：
 1. *逆向头文件解析*：利用反编译工具（如 IDA Pro 或 Ghidra）提取出闭源驱动的伪代码头文件。
-2. *语义约束提取*：将伪代码输入给微调后的 LLM，由大模型自动推理出各个 `ioctl` 接口中的参数类型、边界约束（Constraints）以及指针间的依赖关系。
-3. *Syzlang 自动生成*：大模型直接输出高质量的 Syzlang 模板文件，自动汇入本文框架的 `build.sh` 流水线中编译生效。这不仅将极大降低逆向工程的人力成本，还能发现人类专家极易忽略的边缘结构体变异路径。未来甚至可以将 LLM 与类似 SyzVegas @sun2021syzvegas 的强化学习（Reinforcement Learning）任务调度算法相结合，实现不仅能“生成好语料”，还能“聪明地选择测试路径”的下一代智能变异引擎。
+2. *语义约束提取*：将伪代码输入给微调后的 LLM，由大模型自动推理出各个 `ioctl` 接口中的参数类型、边界约束以及指针间的依赖关系。
+3. *Syzlang 自动生成*：大模型直接输出高质量的 Syzlang 模板文件，自动汇入本文框架的 `build.sh` 流水线中编译生效。这不仅将极大降低逆向工程的人力成本，还能发现人类专家极易忽略的边缘结构体变异路径。未来甚至可以将 LLM 与类似 SyzVegas @sun2021syzvegas 的强化学习任务调度算法相结合，实现不仅能“生成好语料”，还能“聪明地选择测试路径”的下一代智能变异引擎。
 
 == 面向云原生集群的分布式模糊测试架构
-单节点的模糊测试算力终究存在物理上限。得益于本文在第六章中实现的 *VFIO 直通容器化架构（Docker）*，本系统已经具备了无缝接入 Kubernetes（K8s） @burns2016kubernetes 等现代云原生资源调度平台的先决条件。
+单节点的模糊测试算力终究存在物理上限。得益于本文在第六章中实现的 *VFIO 直通容器化架构（Docker）*，本系统已经具备了无缝接入 Kubernetes @burns2016kubernetes 等现代云原生资源调度平台的先决条件。
 
 未来的分布式架构演进如图 7-1 所示：
 - *Master 控制平面*：在 K8s 集群的控制节点部署全局的 `syz-manager` 和 Crash 分类分析器。
-- *在体收集池 (In-Vivo Pool)*：由少量搭载真实异构 GPU（NVIDIA, AMD, Intel）的物理节点组成。这些节点利用本文的 Docker 方案动态捕获业务负载，生成快照与重放日志，并上传至分布式存储（如 Ceph 或 S3）。
-- *离体变异池 (Ex-Vivo Pool)*：由于快照一旦生成便不再需要物理 GPU，K8s 可以利用海量的廉价 CPU 计算节点（甚至抢占式云服务器），大规模并行拉起成千上万个无 GPU 的 Ex-Vivo 容器实例。它们并发从共享存储下载重放日志，执行密集的模糊测试任务，并将覆盖率与崩溃日志实时回传至 Master 节点。
+- *在体收集池*：由少量搭载真实异构 GPU（NVIDIA, AMD, Intel）的物理节点组成。这些节点利用本文的 Docker 方案动态捕获业务负载，生成快照与重放日志，并上传至分布式存储（如 Ceph 或 S3）。
+- *离体变异池*：由于快照一旦生成便不再需要物理 GPU，K8s 可以利用海量的廉价 CPU 计算节点（甚至抢占式云服务器），大规模并行拉起成千上万个无 GPU 的 Ex-Vivo 容器实例。它们并发从共享存储下载重放日志，执行密集的模糊测试任务，并将覆盖率与崩溃日志实时回传至 Master 节点。
 
 如图 7.1 所示，可以尝试将本文的 GPU 驱动模糊测试框架扩展至云原生分布式环境，实现大规模的异构 GPU 驱动自动化测试。
 
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+
 #figure(
-  scale(80%, reflow: true)[
+  scale(85%, reflow: true)[
     #diagram(
-      node-stroke: 1pt,
-      edge-stroke: 1pt,
-      spacing: (4.5em, 1.5em),
+      node-stroke: 0.8pt,
+      edge-stroke: 0.7pt,
+      // 增加横向间距 (8em) 让左右两翼展开，纵向间距 (2.5em) 保持紧凑
+      spacing: (8em, 2.5em),
 
-      node((1,0),[大语言模型 (LLM)(自动化提取 Syzlang 规则)], fill: rgb("fff2cc"), width: 150pt),
-      node((1,1),[全局 K8s Master 节点(syz-manager & 崩溃聚合)], fill: rgb("ccccff"), width: 150pt),
+      // --- 第一层：智能决策层 (顶部中央) ---
+      node((1.5, 0), [
+        *大语言模型 (LLM)* \
+        #set text(size: 9pt); 自动化提取 Syzlang 规则
+      ], fill: rgb("#fff2cc"), width: 160pt, name: <llm>),
 
-      edge((1,0), (1,1), "->", label: "注入语法约束"),
+      // --- 第二层：控制平面 (中央) ---
+      node((1.5, 1), [
+        *全局 K8s Master 节点* \
+        #set text(size: 9pt); syz-manager & 崩溃聚合
+      ], fill: rgb("#ccccff"), width: 160pt, name: <master>),
 
-      node((0.5,2),[*在体收集池 (In-Vivo)*(少量真实物理 GPU)], stroke: none),
-      node((0.5,3),[NVIDIA 节点(本文已实现)], shape: "rect", fill: rgb("e6f7ff")),
-      node((0.5,4),[AMD 节点(未来演进)], shape: "rect", fill: rgb("e6f7ff"), stroke: (dash: "dashed")),
-      node((0.5,5),[Intel 节点(未来演进)], shape: "rect", fill: rgb("e6f7ff"), stroke: (dash: "dashed")),
+      // --- 第三层左翼：在体收集池 (In-Vivo) ---
+      node((0.5, 1), [*在体收集池 (In-Vivo)* \ #set text(size: 8pt); (少量真实物理 GPU)], stroke: none, name: <invivo_label>),
+      node((0.5, 2), [NVIDIA 节点 \ (本文实现)], fill: rgb("#e6f7ff"), width: 120pt, name: <nv>),
+      node((0.5, 3), [AMD 节点 \ (未来演进)], fill: rgb("#f5f5f5"), stroke: (dash: "dashed"), width: 120pt, name: <amd>),
+      node((0.5, 4), [Intel 节点 \ (未来演进)], fill: rgb("#f5f5f5"), stroke: (dash: "dashed"), width: 120pt, name: <intel>),
 
-      edge((0.5,3), (1,1), "->", stroke: (dash: "dashed"), label: "上传快照与日志", label-side: left, label-pos: 0.6),
-      edge((0.5,4), (1,1), "->", stroke: (dash: "dashed")),
-      edge((0.5,5), (1,1), "->", stroke: (dash: "dashed")),
+      // --- 第三层右翼：离体弹缩池 (Ex-Vivo) ---
+      node((2.5, 1), [*离体弹缩池 (Ex-Vivo)* \ #set text(size: 8pt); (海量无 GPU 容器实例)], stroke: none, name: <exvivo_label>),
+      node((2.5, 2), [模糊测试容器组 1], fill: rgb("#eeffee"), width: 120pt, name: <pod1>),
+      node((2.5, 3), [模糊测试容器组 2], fill: rgb("#eeffee"), width: 120pt, name: <pod2>),
+      node((2.5, 4), [模糊测试容器组 N \ (无限弹缩)], fill: rgb("#eeffee"), stroke: (dash: "dashed"), width: 120pt, name: <podn>),
 
-      node((2,2),[*离体弹缩池 (Ex-Vivo)*(海量无 GPU 容器实例)], stroke: none),
-      node((2,3),[Fuzzing Pod 1(纯 CPU 环境)], shape: "rect", fill: rgb("ccffcc")),
-      node((2,4), [Fuzzing Pod 2(纯 CPU 环境)], shape: "rect", fill: rgb("ccffcc")),
-      node((2,5),[Fuzzing Pod N(横向无限弹缩)], shape: "rect", fill: rgb("ccffcc"), stroke: (dash: "dashed")),
+      // --- 连线逻辑 ---
 
-      // 分发连线：Master -> 变异池
-      edge((1,1), (2,3), "->", label: "下发变异任务", label-side: right, label-pos: 0.3),
-      edge((1,1), (2,4), "->"),
-      edge((1,1), (2,5), "->"),
+      edge(<llm>, <master>, "-|>", label: [注入语法约束], label-pos: 0.5, label-side: left),
 
-      // 回传连线：变异池 -> Master (使用曲线避免重叠)
-      edge((2,3), (1,1), "->", bend: 15deg),
-      edge((2,4), (1,1), "->", bend: 15deg),
-      edge((2,5), (1,1), "->", bend: 15deg, label: "回传覆盖率与崩溃信息", label-side: right, label-pos: 0.7)
+      edge(<nv>, <master>, "-|>", stroke: (thickness: 1pt), label: [上传快照], label-side: left, bend: -15deg),
+      edge(<amd>, <master>, "--|>", bend: -10deg),
+      edge(<intel>, <master>, "--|>", bend: -5deg),
+
+      edge(<master>, <pod1>, "-|>", label: [下发任务], label-side: right, bend: -15deg, stroke: blue + 0.8pt),
+      edge(<master>, <pod2>, "-|>", bend: -10deg, stroke: blue + 0.8pt),
+      edge(<master>, <podn>, "--|>", bend: -5deg, stroke: blue + 0.8pt),
+
+      edge(<pod1>, <master>, "-|>", label: [覆盖率], label-side: left, bend: -40deg, stroke: green + 0.8pt, shift: 2pt),
+      edge(<podn>, <master>, "--|>", bend: -30deg, stroke: green + 0.8pt, shift: 2pt),
     )
   ],
-  caption:[基于云原生的跨厂商异构分布式模糊测试演进架构图]
+  caption: [基于云原生的跨厂商异构分布式模糊测试演进架构图]
 )
 
 == 多模态混合并发负载的深度挖掘
-本文在重构中已引入了张量计算等单模态 AI 负载。但在现代异构计算场景中，GPU 往往处于“图形渲染（Graphics）”与“通用计算（Compute）”混合调度的状态。
-未来框架可扩展生成*多模态复合负载（Mixed-Modal Workloads）*。例如，在在体阶段同时运行 Vulkan @vulkan13spec/OpenGL @opengl46spec 图形管道与 CUDA 异步计算管道；并在重放期间，利用宿主机 CPU 模拟高并发的统一虚拟内存（UVM）缺页异常。这种复合态的交火将极大增加发现内核态调度器死锁（Deadlock）和使用后释放（Use-After-Free, UAF）等高危安全漏洞的概率。
+本文在重构中已引入了张量计算等单模态 AI 负载。但在现代异构计算场景中，GPU 往往处于“图形渲染”与“通用计算”混合调度的状态。
+未来框架可扩展生成*多模态复合负载*。例如，在在体阶段同时运行 Vulkan @vulkan13spec/OpenGL @opengl46spec 图形管道与 CUDA 异步计算管道；并在重放期间，利用宿主机 CPU 模拟高并发的统一虚拟内存缺页异常。这种复合态的交火将极大增加发现内核态调度器死锁和使用后释放等高危安全漏洞的概率。
 
 = 总结与展望
 
